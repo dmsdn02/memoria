@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:memoria/main.dart';
 
+import 'login.dart';
+
 class startPage extends StatefulWidget {
   const startPage({super.key});
 
@@ -109,6 +111,10 @@ class _LoginPageState extends State<startPage> {
                             ),
                             onPressed: () {
                               // 로그인 버튼 클릭 이벤트
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => LoginPage()), //로그인 페이지로 이동
+                              );
                             },
                             child: const Center(
                               child: Text(
@@ -136,6 +142,10 @@ class _LoginPageState extends State<startPage> {
                             ),
                             onPressed: () {
                               // 회원가입 버튼 클릭 이벤트
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => LoginPage()), //회원가입 페이지로 이동
+                              );
                             },
                             child: const Center(
                               child: Text(
