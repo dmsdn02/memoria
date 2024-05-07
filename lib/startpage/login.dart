@@ -1,107 +1,191 @@
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'login.dart'; // login.dart 파일 import
+import 'package:memoria/mainpage/calendar.dart';
+import 'package:memoria/startpage/findregister.dart';
+import 'Register.dart';
+import 'start.dart';
 
 void main() {
-  runApp(LoginApp());
+  runApp(MyApp());
 }
 
-class LoginApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Login Page',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
       home: LoginPage(),
     );
   }
 }
 
-class LoginPage extends StatefulWidget {
-  @override
-  _LoginPageState createState() => _LoginPageState();
-}
+class LoginPage extends StatelessWidget {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
-class _LoginPageState extends State<LoginPage> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('로그인'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(50.0),
+      backgroundColor: Color(0xFFF6E690),
+      body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: '이메일',
+            Text(
+              'CodeMate',
+              style: TextStyle(
+                fontSize: 27,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
-            SizedBox(height: 20.0),
-            TextField(
-              controller: passwordController,
-              decoration: InputDecoration(
-                labelText: '비밀번호',
+            SizedBox(height: 23),
+            Container(
+              width: 320,
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
               ),
-              obscureText: true,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: TextFormField(
+                      controller: emailController,
+                      decoration: InputDecoration(
+                        labelText: '이메일',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: InputBorder.none,
+                        prefixIcon: Icon(Icons.email, color: Colors.grey[400]),
+                      ),
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 0.8,
+                    width: double.infinity,
+                    color: Colors.grey[300],
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: TextFormField(
+                      controller: passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: '비밀번호',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: InputBorder.none,
+                        prefixIcon: Icon(Icons.lock, color: Colors.grey[400]),
+                      ),
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 20.0),
-
-            SizedBox(
-              width: 260.0, // 버튼의 너비 설정
-              height: 50.0, // 버튼의 높이 설정
+            SizedBox(height: 20),
+            Container(
+              width: 310,
+              height: 45,
               child: ElevatedButton(
-                onPressed: () {
-                  // 여기에 로그인 처리 코드를 작성하세요.
-                  String email = emailController.text;
-                  String password = passwordController.text;
-                  // 예: 실제로는 여기에 서버로의 로그인 요청이 들어갈 것입니다.
-                  print('Email: $email, Password: $password');
+                onPressed: () async {
+                  String enteredEmail = emailController.text;
+                  String enteredPassword = passwordController.text;
 
-                  // 로그인 버튼을 눌렀을 때 그룹선택? 페이지로 이동하고, 이전 페이지는 스택에서 제거
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                  );
+                  try {
+                    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+                      email: enteredEmail,
+                      password: enteredPassword,
+                    );
+
+                    User? user = userCredential.user;
+
+                    if (user != null) {
+                      if (user.emailVerified) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CalendarPage()),
+                        );
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('이메일 인증 필요'),
+                              content: Text('이메일을 확인하고 인증해주세요.'),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text('확인'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    print("로그인 실패: $e");
+
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('로그인 실패'),
+                          content: Text('이메일 또는 비밀번호가 잘못되었습니다.'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('확인'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 50.0), // 버튼의 내부 패딩 조절
+                  backgroundColor: Colors.brown[300],
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // 버튼의 모서리를 둥글게 만듦
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  backgroundColor: Color(0xFFE4728D), // 버튼의 배경색 변경
-                  elevation: 5.0, // 버튼의 그림자 높이 설정
                 ),
                 child: Text(
                   '로그인',
                   style: TextStyle(
-                    fontSize: 18.0, // 버튼 텍스트의 크기 설정
-                    fontWeight: FontWeight.bold, // 버튼 텍스트의 굵기 설정
-                    color: Colors.white, // 버튼 텍스트의 색상 설정
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-            SizedBox(height: 10.0), // 텍스트 버튼과 로그인 버튼 사이의 간격 조절
-
-            // 비밀번호 찾기 텍스트 버튼
+            SizedBox(height: 15),
             TextButton(
               onPressed: () {
-                // 여기에 비밀번호 찾기 기능을 수행하는 코드를 작성하세요.
-                print('비밀번호 찾기');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FindRegisterPage()),
+                );// 비밀번호 찾기 페이지로 이동
               },
               child: Text(
-                '비밀번호를 잊으셨나요?',
+                '비밀번호 찾기',
                 style: TextStyle(
-                  color: Colors.blue, // 텍스트 색상 변경
+                  color: Colors.grey,
+                  fontSize: 14,
                 ),
               ),
             ),
