@@ -112,19 +112,19 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(""),
-        backgroundColor: Color(0xFFF6E690),
+        title: Text("회원가입"),
+        backgroundColor: Colors.white,
       ),
-      backgroundColor: Color(0xFFF6E690),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                SizedBox(height: 80.0),
-                Text('회원가입', style: TextStyle(fontSize: 27.0, fontWeight: FontWeight.bold)),
+                //SizedBox(height: 30.0),
+                //Text('', style: TextStyle(fontSize: 27.0, fontWeight: FontWeight.bold)),
                 SizedBox(height: 23.0),
                 Container(
                   width: 320,
@@ -132,6 +132,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all( // 테두리 추가
+                      color: Colors.grey[300]!, // 테두리 색상 설정
+                      width: 1, // 테두리 두께 설정
+                    ),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -319,7 +323,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       _register();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFFFF1B4),
+                      backgroundColor: Color(0xFFFFC5D3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -340,7 +344,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ? SizedBox(
                   child: RichText(
                     text: TextSpan(
-                      style: TextStyle(color: Colors.brown, fontSize: 17),
+                      style: TextStyle(color: Colors.white, fontSize: 17),
                       children: [
                         TextSpan(
                           text: '  가입이 완료되었습니다.\n',

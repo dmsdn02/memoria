@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:memoria/mainpage/calendar.dart';
 import 'package:memoria/startpage/findregister.dart';
-import 'Register.dart';
 import 'start.dart';
 
 void main() {
@@ -27,19 +26,15 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF6E690),
+      appBar: AppBar( // AppBar 추가
+        title: Text('로그인'), // AppBar 제목 설정
+      ),
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          //mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text(
-              'CodeMate',
-              style: TextStyle(
-                fontSize: 27,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
             SizedBox(height: 23),
             Container(
               width: 320,
@@ -47,6 +42,10 @@ class LoginPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all( // 테두리 추가
+                  color: Colors.grey[300]!, // 테두리 색상 설정
+                  width: 1, // 테두리 두께 설정
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -158,17 +157,23 @@ class LoginPage extends StatelessWidget {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.brown[300],
+                  backgroundColor: Color(0xFFE4728D),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: Text(
-                  '로그인',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                child: SizedBox(
+                  width: 230, // 버튼의 너비
+                  height: 45, // 버튼의 높이
+                  child: Center(
+                    child: Text(
+                      '로그인',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -184,7 +189,7 @@ class LoginPage extends StatelessWidget {
               child: Text(
                 '비밀번호 찾기',
                 style: TextStyle(
-                  color: Colors.grey,
+                  color: Colors.blue,
                   fontSize: 14,
                 ),
               ),
