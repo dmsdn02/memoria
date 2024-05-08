@@ -37,11 +37,12 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
       ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center, //가운데 정렬
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.grey,
@@ -49,7 +50,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
                 SizedBox(width: 10),
                 Text(
-                  "사용자 이름", // 사용자 이름
+                  "(그룹명)",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -126,15 +127,32 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   Widget _buildCalendar() {
-    List<String> weekDays = ['월', '화', '수', '목', '금', '토', '일'];
+    List<String> weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+
     int daysInMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0).day;
 
     List<Widget> gridContent = [];
 
-    gridContent.addAll(weekDays.map((day) => Text(day, style: TextStyle(fontSize: 18))));
+    // 요일을 가운데 정렬하여 출력
+    gridContent.addAll(
+      weekDays.map(
+            (day) => Center(
+          child: Text(day, style: TextStyle(fontSize: 18)),
+        ),
+      ),
+    );
 
+    // 첫 주에 빈 공간 추가 (해당 월의 시작 요일에 따라)
+    DateTime firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
+    int startWeekday = (firstDayOfMonth.weekday) % 7;
+
+    for (int i = 0; i < startWeekday; i++) {
+      gridContent.add(Container()); // 빈 칸
+    }
+
+    // 날짜와 구름모양 아이콘 출력
     for (int i = 1; i <= daysInMonth; i++) {
-      bool isToday = (i == today.day); // 오늘 날짜 확인
+      bool isToday = (i == today.day);
       gridContent.add(
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -143,7 +161,7 @@ class _CalendarPageState extends State<CalendarPage> {
             Text(
               i.toString(),
               style: TextStyle(
-                fontWeight: isToday ? FontWeight.bold : FontWeight.normal, // 오늘은 진한 글씨
+                fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],
@@ -154,7 +172,7 @@ class _CalendarPageState extends State<CalendarPage> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: GridView.count(
-        crossAxisCount: 7,
+        crossAxisCount: 7, // 7개 요일
         children: gridContent,
       ),
     );
