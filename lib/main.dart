@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:memoria/startpage/start.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:memoria/mainpage/calendar.dart';
+import 'package:memoria/startpage/start.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: startPage(), // 클래스 이름과 경로 확인
+      home: CalendarPage(), // 클래스 이름과 경로 확인
       debugShowCheckedModeBanner: false, // 디버그 배너 제거
     );
   }

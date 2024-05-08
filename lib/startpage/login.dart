@@ -164,16 +164,16 @@ class LoginPage extends StatelessWidget {
                 ),
 
 
-                  child: Center(
-                    child: Text(
-                      '로그인',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                child: Center(
+                  child: Text(
+                    '로그인',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                ),
 
               ),
             ),
