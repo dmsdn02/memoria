@@ -241,7 +241,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         color: Colors.grey[300],
                       ),
 
-                      Container(
+                      /*Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
                           children: [
@@ -264,13 +264,13 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ],
                         ),
-                      ),
+                      ),*/
                       Container(
                         height: 0.8,
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
-                      Container(
+                      /*Container(
                         height: 50.0,
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Row(
@@ -310,7 +310,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ],
                         ),
-                      ),
+                      ),*/
                     ],
                   ),
                 ),
