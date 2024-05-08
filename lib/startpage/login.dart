@@ -162,9 +162,8 @@ class LoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: SizedBox(
-                  width: 230, // 버튼의 너비
-                  height: 45, // 버튼의 높이
+
+
                   child: Center(
                     child: Text(
                       '로그인',
@@ -175,7 +174,7 @@ class LoginPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
+
               ),
             ),
             SizedBox(height: 15),
@@ -183,7 +182,7 @@ class LoginPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FindRegisterPage()),
+                  MaterialPageRoute(builder: (context) => FindRegister()),
                 );// 비밀번호 찾기 페이지로 이동
               },
               child: Text(
