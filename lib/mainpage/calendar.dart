@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:memoria/mainpage/create_post.dart';
 
 class CalendarPage extends StatefulWidget {
   @override
@@ -103,6 +104,10 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => CreatePostPage()),
+          );
           // 플러스 아이콘 기능
         },
         child: Icon(Icons.add),
