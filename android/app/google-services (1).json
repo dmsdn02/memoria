@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "699450401533",
+    "project_id": "memoria-7b14d",
+    "storage_bucket": "memoria-7b14d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:699450401533:android:b8dc59f10d244f7bb01494",
+        "android_client_info": {
+          "package_name": "com.example.memoria"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfgNlHLcVHsbZOAqzBGqi9ngqF6XZddZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

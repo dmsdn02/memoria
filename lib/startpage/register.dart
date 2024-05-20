@@ -31,9 +31,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (email.isEmpty ||
           password.isEmpty ||
           confirmPassword.isEmpty ||
-          name.isEmpty ||
-          userNickname.isEmpty ||
-          gender.isEmpty) {
+          name.isEmpty) {
         print("정보를 입력해주세요.");
         setState(() {
           isRegistered = false;
@@ -240,77 +238,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
-
-                      /*Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                decoration: InputDecoration(
-                                  labelText: '닉네임',
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  border: InputBorder.none,
-                                  prefixIcon: Icon(Icons.account_circle, color: Colors.grey[400]),
-                                ),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                ),
-                                onChanged: (value) {
-                                  userNickname = value;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),*/
                       Container(
                         height: 0.8,
                         width: double.infinity,
                         color: Colors.grey[300],
                       ),
-                      /*Container(
-                        height: 50.0,
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(Icons.male_outlined, color: Colors.grey[400]),
-                            Icon(Icons.female_outlined, color: Colors.grey[400]),
-                            SizedBox(width: 30),
-                            Radio(
-                              value: "남",
-                              groupValue: gender,
-                              onChanged: (value) {
-                                setState(() {
-                                  gender = value.toString();
-                                });
-                              },
-                            ),
-                            Text(
-                              "남",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SizedBox(width: 20),
-                            Radio(
-                              value: "여",
-                              groupValue: gender,
-                              onChanged: (value) {
-                                setState(() {
-                                  gender = value.toString();
-                                });
-                              },
-                            ),
-                            Text(
-                              "여",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          ],
-                        ),
-                      ),*/
                     ],
                   ),
                 ),
@@ -366,9 +298,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     (email.isEmpty ||
                         password.isEmpty ||
                         confirmPassword.isEmpty ||
-                        name.isEmpty ||
-                        userNickname.isEmpty ||
-                        gender.isEmpty)
+                        name.isEmpty
+                    )
                     ? SizedBox(
                   child: Text(
                     '정보를 입력하세요.',

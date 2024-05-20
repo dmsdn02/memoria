@@ -1,10 +1,9 @@
-plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    id "dev.flutter.flutter-gradle-plugin"
-}
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'dev.flutter.flutter-gradle-plugin'
+apply plugin: 'com.google.gms.google-services'
 
-def localProperties = new Properties()
+//def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader ->
@@ -23,23 +22,8 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.example.memoria"
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
-
+    buildToolsVersion flutter.buildToolsVersion
     defaultConfig {
         applicationId "com.example.memoria"
         minSdkVersion flutter.minSdkVersion
@@ -48,10 +32,9 @@ android {
         versionName flutterVersionName
         multiDexEnabled true // 멀티덱스 지원 추가
     }
-
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
 }
@@ -62,4 +45,6 @@ flutter {
 
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1' // 멀티덱스 라이브러리 추가
+    implementation platform('com.google.firebase:firebase-bom:33.0.0')
+    implementation 'com.google.firebase:firebase-analytics'
 }
