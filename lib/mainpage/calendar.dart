@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:memoria/mainpage/create_post.dart';
 
+import '../add/mypage.dart';
+import '../add/setting.dart';
+
 class CalendarPage extends StatefulWidget {
   @override
   _CalendarPageState createState() => _CalendarPageState();
@@ -16,6 +19,7 @@ class _CalendarPageState extends State<CalendarPage> {
     String currentYearMonth = DateFormat('yyyy년 MM월').format(selectedDate);
 
     return Scaffold(
+      backgroundColor: Colors.white, // 배경색 흰색으로 변경
       appBar: AppBar(
         title: Text('Calendar Page'),
         actions: [
@@ -28,14 +32,21 @@ class _CalendarPageState extends State<CalendarPage> {
           IconButton(
             icon: Icon(Icons.settings),
             onPressed: () {
-              // 설정 기능
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingPage()),
+              );
             },
           ),
+
         ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0),
           child: Divider(color: Colors.grey), // 회색 구분선
         ),
+        // 틴트 제거
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -83,6 +94,7 @@ class _CalendarPageState extends State<CalendarPage> {
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         notchMargin: 6.0,
+        color: Colors.white, // 하단바 배경색 흰색으로 변경
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -96,7 +108,10 @@ class _CalendarPageState extends State<CalendarPage> {
             IconButton(
               icon: Icon(Icons.person),
               onPressed: () {
-                // 사람 아이콘 기능
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MyPage()), // MyPage로 이동
+                );
               },
             ),
           ],
