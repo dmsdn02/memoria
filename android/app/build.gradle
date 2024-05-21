@@ -1,3 +1,4 @@
+
 plugins {
     id "com.android.application"
     id "kotlin-android"
@@ -7,7 +8,8 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
-def localProperties = new Properties()
+
+//def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader ->
@@ -26,23 +28,8 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.example.memoria"
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
-
+    buildToolsVersion flutter.buildToolsVersion
     defaultConfig {
         applicationId "com.example.memoria"
         minSdkVersion flutter.minSdkVersion
@@ -51,10 +38,9 @@ android {
         versionName flutterVersionName
         multiDexEnabled true // 멀티덱스 지원 추가
     }
-
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
 }
@@ -75,4 +61,5 @@ dependencies {
 
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
+
 }
