@@ -8,12 +8,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: FirebaseOptions(
-      apiKey: "AIzaSyDfgNlHLcVHsbZOAqzBGqi9ngqF6XZddZs",
-      authDomain: "memoria-7b14d.firebaseapp.com",
-      projectId: "memoria-7b14d",
+      apiKey: "AIzaSyDs79bHVta-IL6eGjnEK_Wg4ysbj08c37Q",
+      authDomain: "memoria-f5d67.firebaseapp.com",
+      projectId: "memoria-f5d67",
       //storageBucket: "codemate-b0880.appspot.com",
-      messagingSenderId: "699450401533",
-      appId: "1:699450401533:android:b8dc59f10d244f7bb01494",
+      messagingSenderId: "646927978499",
+      appId: "1:646927978499:android:5ca91b788854dfb0cb7e36",
     ),
   );
 
