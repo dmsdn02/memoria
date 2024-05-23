@@ -4,9 +4,12 @@ plugins {
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 
+    id 'com.google.gms.google-services'
+
     // Add the Google services Gradle plugin
     id 'com.google.gms.google-services'
 }
+
 
 
 //def localProperties = new Properties()
@@ -28,8 +31,24 @@ if (flutterVersionName == null) {
 }
 
 android {
+    namespace "com.example.memoria"
     compileSdkVersion flutter.compileSdkVersion
     buildToolsVersion flutter.buildToolsVersion
+    ndkVersion flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
     defaultConfig {
         applicationId "com.example.memoria"
         minSdkVersion flutter.minSdkVersion
@@ -40,7 +59,7 @@ android {
     }
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.debug
         }
     }
 }
@@ -50,6 +69,7 @@ flutter {
 }
 
 dependencies {
+
     implementation 'androidx.multidex:multidex:2.0.1' // 멀티덱스 라이브러리 추가
 
     // Import the Firebase BoM
