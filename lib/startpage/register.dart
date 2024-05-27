@@ -272,7 +272,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 SizedBox(height: 20.0),
-                showErrorMessage && !isRegistered && email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty && name.isNotEmpty && userNickname.isNotEmpty && gender.isNotEmpty
+                showErrorMessage && !isRegistered && email.isNotEmpty && password.isNotEmpty && confirmPassword.isNotEmpty && name.isNotEmpty
                     ? SizedBox(
                   child: RichText(
                     text: TextSpan(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../friends/f_list.dart';
 import '../mainpage/calendar.dart';
 import 'setting.dart';
 
@@ -94,9 +95,13 @@ class MyPage extends StatelessWidget {
                         IconButton(
                           icon: Icon(Icons.people),
                           onPressed: () {
-                            // 친구 목록 기능
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => FriendListPage()), // FriendListPage로 이동
+                            );
                           },
                         ),
+
                         Text("친구 목록"),
                       ],
                     ),
