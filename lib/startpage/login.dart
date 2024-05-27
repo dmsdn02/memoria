@@ -1,8 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:memoria/mainpage/calendar.dart';
 import 'package:memoria/startpage/reset_password.dart';
-import 'start.dart';
 
 void main() {
   runApp(MyApp());
@@ -22,18 +22,18 @@ class LoginPage extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar( // AppBar 추가
-        title: Text('로그인'), // AppBar 제목 설정
+      appBar: AppBar(
+        title: Text('로그인'),
       ),
       backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
-          //mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             SizedBox(height: 23),
             Container(
@@ -42,9 +42,9 @@ class LoginPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all( // 테두리 추가
-                  color: Colors.grey[300]!, // 테두리 색상 설정
-                  width: 1, // 테두리 두께 설정
+                border: Border.all(
+                  color: Colors.grey[300]!,
+                  width: 1,
                 ),
               ),
               child: Column(
@@ -110,10 +110,15 @@ class LoginPage extends StatelessWidget {
 
                     if (user != null) {
                       if (user.emailVerified) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => CalendarPage()),
-                        );
+                        // 사용자 데이터 로드
+                        DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+                        if (userDoc.exists) {
+                          Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => CalendarPage()),
+                          );
+                        }
                       } else {
                         showDialog(
                           context: context,
@@ -162,8 +167,6 @@ class LoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-
-
                 child: Center(
                   child: Text(
                     '로그인',
@@ -174,7 +177,6 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                 ),
-
               ),
             ),
             SizedBox(height: 15),
@@ -183,7 +185,6 @@ class LoginPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ResetPassword()),
-                );// 비밀번호 찾기 페이지로 이동
               },
               child: Text(
                 '비밀번호 찾기',
