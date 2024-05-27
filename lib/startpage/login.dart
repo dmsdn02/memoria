@@ -185,6 +185,7 @@ class LoginPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ResetPassword()),
+                );
               },
               child: Text(
                 '비밀번호 찾기',

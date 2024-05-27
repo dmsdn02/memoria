@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../friends/create_group.dart';
 import '../friends/f_list.dart';
 import '../mainpage/calendar.dart';
 import 'setting.dart';
@@ -7,7 +8,7 @@ class MyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // 화면 배경색 흰색으로 변경
+      backgroundColor: Colors.white,
       appBar: AppBar(
         actions: [
           IconButton(
@@ -142,7 +143,10 @@ class MyPage extends StatelessWidget {
                 SizedBox(width: 8),
                 TextButton(
                   onPressed: () {
-                    // 그룹 생성하기 기능
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CreateGroupPage()), // CreateGroupPage로 이동
+                    );
                   },
                   child: Text(
                     "그룹 생성하기",
