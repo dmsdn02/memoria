@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:memoria/startpage/reset_password.dart'; // ResetPassword 페이지 import
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:memoria/startpage/reset_password.dart';
+import '../startpage/start.dart';
+import 'delete_account.dart';
 
 class SettingPage extends StatelessWidget {
   @override
@@ -7,6 +10,7 @@ class SettingPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings'),
+        backgroundColor: Colors.white,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -14,6 +18,7 @@ class SettingPage extends StatelessWidget {
           },
         ),
       ),
+      backgroundColor: Colors.white,
       body: SettingsBody(),
     );
   }
@@ -43,13 +48,16 @@ class SettingsBody extends StatelessWidget {
         SubSettingItem(
           title: '로그아웃',
           onTap: () {
-            // Handle logout
+            _showLogoutDialog(context);
           },
         ),
         SubSettingItem(
           title: '계정탈퇴',
           onTap: () {
-            // Handle account deletion
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DeleteAccountPage()),
+            );
           },
         ),
         SettingItem(
@@ -68,6 +76,36 @@ class SettingsBody extends StatelessWidget {
         ),
         // Add more settings as needed
       ],
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('로그아웃'),
+          content: Text('로그아웃 하시겠습니까?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('아니오'),
+              onPressed: () {
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+              },
+            ),
+            TextButton(
+              child: Text('예'),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut(); // 로그아웃
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => StartPage()), // StartPage로 이동
+                      (Route<dynamic> route) => false, // 모든 이전 경로를 제거하여 뒤로 가기를 방지
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

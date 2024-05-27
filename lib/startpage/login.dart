@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:memoria/mainpage/calendar.dart';
-import 'package:memoria/startpage/findregister.dart';
+import 'package:memoria/startpage/reset_password.dart';
 import 'start.dart';
 
 void main() {
@@ -182,7 +182,7 @@ class LoginPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FindRegister()),
+                  MaterialPageRoute(builder: (context) => ResetPassword()),
                 );// 비밀번호 찾기 페이지로 이동
               },
               child: Text(
