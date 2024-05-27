@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:memoria/startpage/reset_password.dart';
+import '../startpage/start.dart';
+import 'delete_account.dart';
 
 class SettingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Settings'),
-          leading: IconButton( // 왼쪽에 뒤로가기 버튼 추가
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.of(context).pop(); // 뒤로가기 기능 추가
-            },
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Settings'),
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
         ),
-        body: SettingsBody(),
       ),
+      backgroundColor: Colors.white,
+      body: SettingsBody(),
     );
   }
 }
@@ -27,80 +31,109 @@ class SettingsBody extends StatelessWidget {
       children: <Widget>[
         SettingItem(
           title: '계정',
-          icon: Icons.account_circle, // 계정 아이콘 추가
+          icon: Icons.account_circle,
           onTap: () {
-            // Handle Wi-Fi settings
+            // Handle account settings
           },
         ),
         SubSettingItem(
           title: '비밀번호 변경',
           onTap: () {
-            // Handle Wi-Fi Name settings
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ResetPassword()),
+            );
           },
         ),
         SubSettingItem(
           title: '로그아웃',
           onTap: () {
-            // Handle Wi-Fi Password settings
+            _showLogoutDialog(context);
           },
         ),
         SubSettingItem(
           title: '계정탈퇴',
           onTap: () {
-            // Handle Wi-Fi Password settings
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DeleteAccountPage()),
+            );
           },
         ),
         SettingItem(
           title: '알림',
-          icon: Icons.notifications, // 알림 아이콘 추가
+          icon: Icons.notifications,
           onTap: () {
-            // Handle Bluetooth settings
+            // Handle notification settings
           },
         ),
         SubSettingItem(
           title: '알림설정',
-          isSwitch: true, // 스위치 버튼 추가
+          isSwitch: true,
           onTap: () {
-            // Handle Bluetooth Devices settings
+            // Handle notification settings
           },
         ),
         // Add more settings as needed
       ],
     );
   }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('로그아웃'),
+          content: Text('로그아웃 하시겠습니까?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('아니오'),
+              onPressed: () {
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+              },
+            ),
+            TextButton(
+              child: Text('예'),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut(); // 로그아웃
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => StartPage()), // StartPage로 이동
+                      (Route<dynamic> route) => false, // 모든 이전 경로를 제거하여 뒤로 가기를 방지
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class SettingItem extends StatelessWidget {
   final String title;
-  final IconData? icon; // 아이콘 추가
+  final IconData? icon;
   final Function onTap;
 
   const SettingItem({
     Key? key,
     required this.title,
-    this.icon, // 아이콘 추가
+    this.icon,
     required this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.blueGrey[50], // SettingItem의 배경색
+      color: Colors.blueGrey[50],
       child: ListTile(
-        leading: Icon(
-          icon,
-          color: Colors.black, // SettingItem의 아이콘 색상
-        ),
+        leading: icon != null ? Icon(icon, color: Colors.black) : null,
         title: Text(
           title,
-          style: TextStyle(
-            color: Colors.black, // SettingItem의 텍스트 색상
-          ),
+          style: TextStyle(color: Colors.black),
         ),
         onTap: () {
-          if (onTap != null) {
-            onTap();
-          }
+          onTap();
         },
       ),
     );
@@ -110,33 +143,31 @@ class SettingItem extends StatelessWidget {
 class SubSettingItem extends StatelessWidget {
   final String title;
   final Function onTap;
-  final bool? isSwitch; // 스위치 버튼 추가
+  final bool? isSwitch;
 
   const SubSettingItem({
     Key? key,
     required this.title,
     required this.onTap,
-    this.isSwitch, // 스위치 버튼 추가
+    this.isSwitch,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white, // SubSettingItem의 배경색 (하얀색)
+      color: Colors.white,
       child: ListTile(
         title: Row(
           children: [
             Expanded(
               child: Text(
                 title,
-                style: TextStyle(
-                  color: Colors.black, // SubSettingItem의 텍스트 색상 (검은색)
-                ),
+                style: TextStyle(color: Colors.black),
               ),
             ),
-            if (isSwitch != null && isSwitch!) // 스위치 버튼 추가
+            if (isSwitch != null && isSwitch!)
               Switch(
-                value: true, // 예시로 기본값은 true
+                value: true,
                 onChanged: (value) {
                   // Handle switch change
                 },
@@ -144,9 +175,7 @@ class SubSettingItem extends StatelessWidget {
           ],
         ),
         onTap: () {
-          if (onTap != null) {
-            onTap();
-          }
+          onTap();
         },
       ),
     );

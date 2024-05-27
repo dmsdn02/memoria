@@ -1,30 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../startpage/start.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
+class DeleteAccountPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: FindRegister(),
-    );
-  }
+  _DeleteAccountPageState createState() => _DeleteAccountPageState();
 }
 
-class FindRegister extends StatefulWidget {
-  @override
-  _FindRegisterState createState() => _FindRegisterState();
-}
-
-class _FindRegisterState extends State<FindRegister> {
-  final TextEditingController emailController = TextEditingController();
-  final RegExp emailRegExp = RegExp(
-    r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
-  );
-  bool isEmailInvalid = false;
+class _DeleteAccountPageState extends State<DeleteAccountPage> {
+  final TextEditingController passwordController = TextEditingController();
+  bool isPasswordInvalid = false;
+  String errorMessage = '';
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +28,13 @@ class _FindRegisterState extends State<FindRegister> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Icon(
-                  Icons.lock_outline,
+                  Icons.delete,
                   size: 30,
                   color: Colors.black,
                 ),
                 SizedBox(width: 10),
                 Text(
-                  '비밀번호 찾기',
+                  '탈퇴하기',
                   style: TextStyle(fontSize: 30, color: Colors.black, fontWeight: FontWeight.normal),
                 ),
               ],
@@ -60,7 +46,7 @@ class _FindRegisterState extends State<FindRegister> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '회원정보에 등록한 이메일을 입력해주세요.\n등록한 이메일로 비밀번호 재설정 메일이 발송됩니다.',
+                  '회원정보에 등록한 비밀번호를 입력해주세요.\n올바른 비밀번호 입력시, 탈퇴가 완료됩니다.',
                   style: TextStyle(fontSize: 16),
                   textAlign: TextAlign.left,
                 ),
@@ -68,38 +54,32 @@ class _FindRegisterState extends State<FindRegister> {
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: TextFormField(
-                    controller: emailController,
+                    controller: passwordController,
                     decoration: InputDecoration(
-                      labelText: '이메일',
+                      labelText: '비밀번호',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(),
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        isEmailInvalid = !isEmailValid(value);
-                      });
-                    },
+                    obscureText: true,
                   ),
                 ),
-                Visibility(
-                  visible: isEmailInvalid,
-                  child: Text(
-                    '올바른 이메일 형식이 아닙니다.',
-                    style: TextStyle(color: Colors.red),
+                if (isPasswordInvalid)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      errorMessage,
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
-                ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    String email = emailController.text.trim();
-                    if (isEmailValid(email)) {
-                      // 올바른 이메일인 경우에만 이메일 전송
-                      sendPasswordResetEmail(email);
-                    }
+                    String password = passwordController.text.trim();
+                    _deleteAccount(password);
                   },
                   child: Text(
-                    '이메일 전송',
+                    '탈퇴하기',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 15,
@@ -110,7 +90,7 @@ class _FindRegisterState extends State<FindRegister> {
                     minimumSize: MaterialStateProperty.all(Size(300, 50)),
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0), // 모서리의 반지름 설정
+                        borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
                   ),
@@ -124,20 +104,33 @@ class _FindRegisterState extends State<FindRegister> {
     );
   }
 
-  bool isEmailValid(String email) {
-    return emailRegExp.hasMatch(email);
-  }
-
-  void sendPasswordResetEmail(String email) async {
+  Future<void> _deleteAccount(String password) async {
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      // 비밀번호 재설정 이메일이 성공적으로 전송됨
-      print('이메일 전송 성공');
-      // 추가적인 UI 작업 또는 네비게이션 등을 수행할 수 있음
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: password,
+        );
+
+        // Re-authenticate the user
+        await user.reauthenticateWithCredential(credential);
+
+        // Delete the user
+        await user.delete();
+
+        // Navigate to start page
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => StartPage()),
+              (Route<dynamic> route) => false,
+        );
+      }
     } catch (e) {
-      // 이메일 전송 실패
-      print('이메일 전송 실패: $e');
-      // 에러 메시지를 사용자에게 표시할 수 있음
+      setState(() {
+        isPasswordInvalid = true;
+        errorMessage = '비밀번호가 올바르지 않습니다.';
+      });
     }
   }
 }
