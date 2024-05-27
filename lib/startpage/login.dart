@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:memoria/mainpage/calendar.dart';
-import 'package:memoria/startpage/findregister.dart';
+import 'package:memoria/startpage/reset_password.dart';
 
 void main() {
   runApp(MyApp());
@@ -184,7 +184,7 @@ class LoginPage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FindRegister()),
+                  MaterialPageRoute(builder: (context) => ResetPassword()),
                 );
               },
               child: Text(
