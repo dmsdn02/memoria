@@ -69,8 +69,6 @@ class _RegisterPageState extends State<RegisterPage> {
         await _firestore.collection('users').doc(user.uid).set({
           'email': email,
           'name': name,
-          'userNickname': userNickname,
-          'gender': gender,
         });
 
         // 사용자에게 이메일 인증 메일 전송
