@@ -3,8 +3,39 @@ import '../friends/create_group.dart';
 import '../friends/f_list.dart';
 import '../mainpage/calendar.dart';
 import 'setting.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MyPage extends StatelessWidget {
+class MyPage extends StatefulWidget {
+  @override
+  _MyPageState createState() => _MyPageState();
+}
+
+class _MyPageState extends State<MyPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String userName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserName();
+  }
+
+  Future<void> _getUserName() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        DocumentSnapshot userSnapshot = await _firestore.collection('users').doc(user.uid).get();
+        setState(() {
+          userName = userSnapshot['name'];
+        });
+      }
+    } catch (e) {
+      print('Failed to get user name: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,7 +73,7 @@ class MyPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "사용자 이름",
+                        userName,
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 4),
