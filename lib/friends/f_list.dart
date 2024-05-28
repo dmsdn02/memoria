@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'FriendListDialog.dart';
+
 class FriendListPage extends StatefulWidget {
   @override
   _FriendListPageState createState() => _FriendListPageState();
@@ -25,7 +27,7 @@ class _FriendListPageState extends State<FriendListPage> {
 
   Future<void> _loadFriends() async {
     try {
-      final userDoc = await _firestore.collection('users').doc(_currentUser!.uid).get();
+      final userDoc = await _firestore.collection('friends').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
         final data = userDoc.data();
         if (data != null && data.containsKey('friends')) {
@@ -50,8 +52,8 @@ class _FriendListPageState extends State<FriendListPage> {
           _friends.add({'name': friendData['name'], 'email': friendEmail});
         });
 
-        await _firestore.collection('users').doc(_currentUser!.uid).update({
-          'friends': _friends,
+        await _firestore.collection('friends').doc(_currentUser!.uid).update({
+          'friends': FieldValue.arrayUnion([{'name': friendData['name'], 'email': friendEmail}]),
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -69,8 +71,8 @@ class _FriendListPageState extends State<FriendListPage> {
         _friends.removeWhere((friend) => friend['email'] == email);
       });
 
-      await _firestore.collection('users').doc(_currentUser!.uid).update({
-        'friends': _friends,
+      await _firestore.collection('friends').doc(_currentUser!.uid).update({
+        'friends': FieldValue.arrayRemove([{'email': email}]),
       });
     } catch (e) {
       print('Error removing friend: $e');
@@ -105,6 +107,7 @@ class _FriendListPageState extends State<FriendListPage> {
           final friend = _friends[index];
           return ListTile(
             title: Text(friend['name']),
+            subtitle: Text(friend['email']),
             trailing: IconButton(
               icon: Icon(Icons.delete),
               onPressed: () async {
@@ -115,54 +118,5 @@ class _FriendListPageState extends State<FriendListPage> {
         },
       ),
     );
-  }
-}
-
-class FriendListDialog extends StatelessWidget {
-  final TextEditingController _emailController = TextEditingController();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('친구 추가'),
-      content: TextField(
-        controller: _emailController,
-        decoration: InputDecoration(hintText: '친구의 이메일을 입력하세요'),
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: Text('취소'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            String friendEmail = _emailController.text.trim();
-            if (friendEmail.isNotEmpty) {
-              var userQuery = await _firestore.collection('users').where('email', isEqualTo: friendEmail).get();
-              if (userQuery.docs.isNotEmpty) {
-                Navigator.of(context).pop(friendEmail);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('해당 이메일로 등록된 사용자를 찾을 수 없습니다.')),
-                );
-              }
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('이메일을 입력하세요.')),
-              );
-            }
-          },
-          child: Text('추가'),
-        ),
-      ],
-    );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
   }
 }
