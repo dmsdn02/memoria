@@ -64,10 +64,13 @@ class _FriendListDialogState extends State<FriendListDialog> {
       print('Friend User ID: $friendUserId');
 
       // friends 컬렉션에 현재 사용자의 친구 목록 문서 생성/업데이트
-      await _firestore.collection('friends').doc(currentUserId).set({
-        'friends': FieldValue.arrayUnion([
-          {'uid': friendUserId, 'email': friendEmail, 'name': friendName}
-        ]),
+      DocumentReference friendsDocRef = _firestore.collection('friends').doc(currentUserId);
+      // Create or update friend's data in friends collection
+      await friendsDocRef.set({
+        '$friendUserId': {
+          'email': friendEmail,
+          'name': friendName,
+        }
       }, SetOptions(merge: true));
 
       Navigator.of(context).pop(friendEmail);
