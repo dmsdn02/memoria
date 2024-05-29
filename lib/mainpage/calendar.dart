@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:memoria/mainpage/create_post.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'feed.dart';
+import 'create_post.dart';
 import '../add/mypage.dart';
 import '../add/setting.dart';
 
@@ -38,7 +39,6 @@ class _CalendarPageState extends State<CalendarPage> {
               );
             },
           ),
-
         ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0),
@@ -54,7 +54,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center, //가운데 정렬
+              mainAxisAlignment: MainAxisAlignment.center, // 가운데 정렬
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.grey,
@@ -119,7 +119,7 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushReplacement(
+          Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => CreatePostPage()),
           );
@@ -172,19 +172,30 @@ class _CalendarPageState extends State<CalendarPage> {
 
     // 날짜와 구름모양 아이콘 출력
     for (int i = 1; i <= daysInMonth; i++) {
-      bool isToday = (i == today.day);
+      bool isToday = (i == today.day && selectedDate.month == today.month && selectedDate.year == today.year);
+      DateTime currentDay = DateTime(selectedDate.year, selectedDate.month, i);
       gridContent.add(
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.cloud, color: Color(0xFFADD8E6)), // 연한 하늘색
-            Text(
-              i.toString(),
-              style: TextStyle(
-                fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PostsByDatePage(selectedDate: currentDay),
               ),
-            ),
-          ],
+            );
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.cloud, color: Color(0xFFADD8E6)), // 연한 하늘색
+              Text(
+                i.toString(),
+                style: TextStyle(
+                  fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
