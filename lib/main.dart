@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: CalendarPage(), // 클래스 이름과 경로 확인
+      home: StartPage(), // 클래스 이름과 경로 확인
       debugShowCheckedModeBanner: false, // 디버그 배너 제거
     );
   }
