@@ -3,8 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'SelectFriendDialog.dart';
-
 class CreatePostPage extends StatefulWidget {
   @override
   _CreatePostPageState createState() => _CreatePostPageState();
@@ -14,7 +12,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
   TextEditingController _titleController = TextEditingController();
   TextEditingController _dateController = TextEditingController();
   TextEditingController _postController = TextEditingController();
-  List<String> _selectedFriends = []; // 선택된 친구 목록
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -32,19 +29,45 @@ class _CreatePostPageState extends State<CreatePostPage> {
     super.dispose();
   }
 
-  void _submitPost() {
+  void _submitPost() async {
     String title = _titleController.text;
     String date = _dateController.text;
     String postContent = _postController.text;
 
-    // 여기서 포스트를 전송하거나 저장하는 로직을 추가할 수 있습니다.
-    print('Submitted post: $title, $date, $postContent, Friends: $_selectedFriends');
-    Navigator.pop(context);
+    // 현재 로그인된 사용자 가져오기
+    User? currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      String currentUserId = currentUser.uid;
+
+      try {
+        // 게시물 데이터 생성
+        Map<String, dynamic> postData = {
+          'title': title,
+          'date': date,
+          'content': postContent,
+          // 게시물 작성자의 UID 추가
+          'userId': currentUserId,
+        };
+
+        // 'posts' 컬렉션에 새로운 게시물 추가
+        await _firestore.collection('posts').add(postData);
+        print('Post added successfully');
+
+        // 게시물 작성 후 다이얼로그 닫기
+        Navigator.pop(context);
+      } catch (e) {
+        print('Error submitting post: $e');
+        // 에러 발생 시 사용자에게 알림
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('게시물 작성 중 오류가 발생했습니다.')),
+        );
+      }
+    }
   }
 
   void _selectDate() async {
     DateTime? pickedDate = await showDatePicker(
-        context: context,
+      context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
@@ -53,21 +76,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
     if (pickedDate != null) {
       setState(() {
         _dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
-      });
-    }
-  }
-
-  Future<void> _selectFriend() async {
-    final List<String>? selectedFriends = await showDialog<List<String>>(
-      context: context,
-      builder: (BuildContext context) {
-        return SelectFriendDialog();
-      },
-    );
-
-    if (selectedFriends != null) {
-      setState(() {
-        _selectedFriends.addAll(selectedFriends);
       });
     }
   }
@@ -146,26 +154,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
             ),
             SizedBox(height: 16.0),
             Row(
-              children: [
-                Text(
-                  '추억친구',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18.0,
-                  ),
-                ),
-                SizedBox(width: 8.0),
-                IconButton(
-                  icon: Icon(Icons.add),
-                  onPressed: _selectFriend,
-                ),
-              ],
-            ),
-            Wrap(
-              children: _selectedFriends.map((friend) => Chip(label: Text(friend))).toList(),
-            ),
-            SizedBox(height: 16.0),
-            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
@@ -214,4 +202,3 @@ class _CreatePostPageState extends State<CreatePostPage> {
     );
   }
 }
-
