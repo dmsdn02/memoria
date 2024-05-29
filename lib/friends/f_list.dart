@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'FriendListDialog.dart';
 
@@ -79,43 +81,125 @@ class _FriendListPageState extends State<FriendListPage> {
     }
   }
 
+  Future<void> _copyEmailToClipboard(String email) async {
+    await Clipboard.setData(ClipboardData(text: email));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('이메일이 복사되었습니다.')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('친구 목록'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () async {
-              final friendEmail = await showDialog<String>(
-                context: context,
-                builder: (BuildContext context) {
-                  return FriendListDialog();
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            '나의 이메일: ${_currentUser?.email ?? ''}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.copy),
+                          onPressed: () {
+                            if (_currentUser != null) {
+                              _copyEmailToClipboard(_currentUser!.email!);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.0),
+                Container(
+                  padding: EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(FontAwesomeIcons.userGroup, color: Colors.black, size: 20.0),
+                      IconButton(
+                        icon: Icon(Icons.add, color: Colors.black, size: 25.0),
+                        onPressed: () async {
+                          final friendEmail = await showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return FriendListDialog();
+                            },
+                          );
+                          if (friendEmail != null && friendEmail.isNotEmpty) {
+                            await _addFriend(friendEmail);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: _friends.isNotEmpty
+                  ? ListView.builder(
+                itemCount: _friends.length,
+                itemBuilder: (context, index) {
+                  final friend = _friends[index];
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: ListTile(
+                        title: Text(friend['name']),
+                        subtitle: Text(friend['email']),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () async {
+                            await _removeFriend(friend['email']);
+                          },
+                        ),
+                      ),
+                    ),
+                  );
                 },
-              );
-              if (friendEmail != null && friendEmail.isNotEmpty) {
-                await _addFriend(friendEmail);
-              }
-            },
+              )
+                  : Center(
+                child: Text('친구 목록이 비었습니다.'),
+              ),
+            ),
           ),
         ],
-      ),
-      body: ListView.builder(
-        itemCount: _friends.length,
-        itemBuilder: (context, index) {
-          final friend = _friends[index];
-          return ListTile(
-            title: Text(friend['name']),
-            subtitle: Text(friend['email']),
-            trailing: IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () async {
-                await _removeFriend(friend['email']);
-              },
-            ),
-          );
-        },
       ),
     );
   }
