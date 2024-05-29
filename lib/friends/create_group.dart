@@ -1,7 +1,223 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // 추가
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 
-class CreateGroupPage extends StatelessWidget {
+class FriendListDialog extends StatefulWidget {
+  final List<Map<String, dynamic>> friends;
+  final Set<Map<String, dynamic>> selectedFriends;
+
+  FriendListDialog({required this.friends, required this.selectedFriends});
+
+  @override
+  _FriendListDialogState createState() => _FriendListDialogState();
+}
+
+class _FriendListDialogState extends State<FriendListDialog> {
+  Set<Map<String, dynamic>> _selectedFriends = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedFriends = Set.from(widget.selectedFriends);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('친구 추가'),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: widget.friends.map((friend) {
+            return CheckboxListTile(
+              title: Text(friend['name']),
+              value: _selectedFriends.contains(friend),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    _selectedFriends.add(friend);
+                  } else {
+                    _selectedFriends.remove(friend);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: Text('취소'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
+          child: Text('추가'),
+          onPressed: () {
+            Navigator.of(context).pop(_selectedFriends);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class FriendListPage extends StatefulWidget {
+  @override
+  _FriendListPageState createState() => _FriendListPageState();
+}
+
+class _FriendListPageState extends State<FriendListPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  User? _currentUser;
+  List<Map<String, dynamic>> _friends = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _currentUser = _auth.currentUser;
+    if (_currentUser != null) {
+      _loadFriends();
+    }
+  }
+
+  Future<void> _loadFriends() async {
+    try {
+      final userDoc = await _firestore.collection('friends').doc(_currentUser!.uid).get();
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        if (data != null && data.containsKey('friends')) {
+          setState(() {
+            _friends = List<Map<String, dynamic>>.from(data['friends']);
+          });
+        }
+      }
+    } catch (e) {
+      print('친구 목록을 불러오는 중 오류 발생: $e');
+    }
+  }
+
+  Future<void> _addFriend(String friendEmail) async {
+    try {
+      final friendQuery = await _firestore.collection('users').where('email', isEqualTo: friendEmail).get();
+      if (friendQuery.docs.isNotEmpty) {
+        final friendDoc = friendQuery.docs.first;
+        final friendData = friendDoc.data();
+
+        setState(() {
+          _friends.add({'name': friendData['name'], 'email': friendEmail});
+        });
+
+        await _firestore.collection('friends').doc(_currentUser!.uid).update({
+          'friends': FieldValue.arrayUnion([{'name': friendData['name'], 'email': friendEmail}]),
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('해당 이메일로 등록된 사용자를 찾을 수 없습니다.')),
+        );
+      }
+    } catch (e) {
+      print('친구 추가 중 오류 발생: $e');
+    }
+  }
+
+  Future<void> _removeFriend(String email) async {
+    try {
+      setState(() {
+        _friends.removeWhere((friend) => friend['email'] == email);
+      });
+
+      await _firestore.collection('friends').doc(_currentUser!.uid).update({
+        'friends': FieldValue.arrayRemove([{'email': email}]),
+      });
+    } catch (e) {
+      print('친구 삭제 중 오류 발생: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('친구 목록'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () async {
+              final friendEmail = await showDialog<String>(
+                context: context,
+                builder: (BuildContext context) {
+                  return FriendListDialog(friends: _friends, selectedFriends: Set());
+                },
+              );
+              if (friendEmail != null && friendEmail.isNotEmpty) {
+                await _addFriend(friendEmail);
+              }
+            },
+          ),
+        ],
+      ),
+      body: ListView.builder(
+        itemCount: _friends.length,
+        itemBuilder: (context, index) {
+          final friend = _friends[index];
+          return ListTile(
+            title: Text(friend['name']),
+            subtitle: Text(friend['email']),
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () async {
+                await _removeFriend(friend['email']);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CreateGroupPage extends StatefulWidget {
+  @override
+  _CreateGroupPageState createState() => _CreateGroupPageState();
+}
+
+class _CreateGroupPageState extends State<CreateGroupPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  User? _currentUser;
+  List<Map<String, dynamic>> _friends = [];
+  Set<Map<String, dynamic>> _selectedFriends = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _currentUser = _auth.currentUser;
+    if (_currentUser != null) {
+      _loadFriends();
+    }
+  }
+
+  Future<void> _loadFriends() async {
+    try {
+      final userDoc = await _firestore.collection('friends').doc(_currentUser!.uid).get();
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        if (data != null && data.containsKey('friends')) {
+          setState(() {
+            _friends = List<Map<String, dynamic>>.from(data['friends']);
+          });
+        }
+      }
+    } catch (e) {
+      print('친구 목록을 불러오는 중 오류 발생: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,9 +243,8 @@ class CreateGroupPage extends StatelessWidget {
             ),
             SizedBox(height: 8),
             TextFormField(
-              maxLength: 6, // 최대 글자 수 제한
-              inputFormatters: [LengthLimitingTextInputFormatter(6)], // 추가
-              // 그룹 이름 입력칸
+              maxLength: 6,
+              inputFormatters: [LengthLimitingTextInputFormatter(6)],
             ),
             SizedBox(height: 16),
             Row(
@@ -42,24 +257,53 @@ class CreateGroupPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 8),
-                Container(
-                  width: 100,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 1,
-                        blurRadius: 1,
-                        offset: Offset(0, 0.5),
-                      ),
-                    ],
+                GestureDetector(
+                  onTap: () async {
+                    final selectedFriends = await showDialog<Set<Map<String, dynamic>>>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return FriendListDialog(
+                          friends: _friends,
+                          selectedFriends: _selectedFriends,
+                        );
+                      },
+                    );
+                    if (selectedFriends != null) {
+                      setState(() {
+                        _selectedFriends = selectedFriends;
+                      });
+                    }
+                  },
+                  child: Container(
+                    width: 100,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 1,
+                          blurRadius: 1,
+                          offset: Offset(0, 0.5),
+                        ),
+                      ],
+                    ),
+                    child: Icon(Icons.add_circle_outline_rounded),
                   ),
-                  child: Icon(Icons.add_circle_outline_rounded),
                 ),
               ],
+            ),
+            SizedBox(height: 16),
+            Expanded(
+              child: ListView(
+                children: _selectedFriends.map((friend) {
+                  return ListTile(
+                    title: Text(friend['name']),
+                    subtitle: Text(friend['email']),
+                  );
+                }).toList(),
+              ),
             ),
             SizedBox(height: 16),
             Text(
@@ -84,7 +328,7 @@ class CreateGroupPage extends StatelessWidget {
                         color: Colors.grey.withOpacity(0.5),
                         spreadRadius: 1,
                         blurRadius: 1,
-                        offset: Offset(0, 0.1), // changes position of shadow
+                        offset: Offset(0, 0.1),
                       ),
                     ],
                   ),
@@ -94,9 +338,21 @@ class CreateGroupPage extends StatelessWidget {
                     size: 80,
                   ),
                 ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: Icon(Icons.camera_alt),
+                    onPressed: () {
+                      // 대표사진 변경 로직 추가
+                    },
+                  ),
+                ),
               ],
             ),
             SizedBox(height: 16),
+
+
             ElevatedButton(
               onPressed: () {
                 // 그룹 생성 버튼 클릭 시 동작
