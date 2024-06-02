@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CreatePostPage extends StatefulWidget {
   @override
@@ -14,6 +17,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
   TextEditingController _postController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ImagePicker _picker = ImagePicker();
+  List<XFile> _images = [];
 
   @override
   void initState() {
@@ -34,30 +39,24 @@ class _CreatePostPageState extends State<CreatePostPage> {
     String date = _dateController.text;
     String postContent = _postController.text;
 
-    // 현재 로그인된 사용자 가져오기
     User? currentUser = _auth.currentUser;
     if (currentUser != null) {
       String currentUserId = currentUser.uid;
 
       try {
-        // 게시물 데이터 생성
         Map<String, dynamic> postData = {
           'title': title,
           'date': date,
           'content': postContent,
-          // 게시물 작성자의 UID 추가
           'userId': currentUserId,
         };
 
-        // 'posts' 컬렉션에 새로운 게시물 추가
         await _firestore.collection('posts').add(postData);
         print('Post added successfully');
 
-        // 게시물 작성 후 다이얼로그 닫기
         Navigator.pop(context);
       } catch (e) {
         print('Error submitting post: $e');
-        // 에러 발생 시 사용자에게 알림
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('게시물 작성 중 오류가 발생했습니다.')),
         );
@@ -80,6 +79,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _images.add(pickedFile);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double deviceWidth = MediaQuery.of(context).size.width;
@@ -93,110 +102,162 @@ class _CreatePostPageState extends State<CreatePostPage> {
       backgroundColor: Colors.white,
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Text(
-                  '제목',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18.0,
-                  ),
-                ),
-                SizedBox(width: 8.0),
-                Container(
-                  width: deviceWidth * 0.8,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Colors.grey,
-                    ),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  alignment: Alignment.center,
-                  child: TextField(
-                    controller: _titleController,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: ' 제목을 입력하세요.',
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    '제목',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16.0),
-            Row(
-              children: [
-                Text(
-                  '날짜',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18.0,
-                  ),
-                ),
-                SizedBox(width: 8.0),
-                Expanded(
-                  child: TextField(
-                    controller: _dateController,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.calendar_today),
-                        onPressed: _selectDate,
+                  SizedBox(width: 8.0),
+                  Container(
+                    width: deviceWidth * 0.8,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(
+                        color: Colors.grey,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    alignment: Alignment.center,
+                    child: TextField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: ' 제목을 입력하세요.',
                       ),
                     ),
                   ),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              Row(
+                children: [
+                  Text(
+                    '날짜',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                  SizedBox(width: 8.0),
+                  Expanded(
+                    child: TextField(
+                      controller: _dateController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.calendar_today),
+                          onPressed: _selectDate,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: deviceWidth * 0.9,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(
+                        color: Colors.grey,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    alignment: Alignment.topLeft,
+                    child: TextField(
+                      controller: _postController,
+                      maxLines: null,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: ' 추억을 기록하세요',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    '사진',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                  SizedBox(width: 8.0),
+                  IconButton(
+                    icon: Icon(Icons.add_a_photo),
+                    onPressed: _pickImage,
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.0),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: _images.map((image) {
+                  return Stack(
+                    children: [
+                      Image.file(
+                        File(image.path),
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _images.remove(image);
+                            });
+                          },
+                          child: Icon(
+                            Icons.remove_circle,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: _submitPost,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFE4728D),
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-              ],
-            ),
-            SizedBox(height: 16.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: deviceWidth * 0.9,
-                  height: 300,
-                  decoration: BoxDecoration(
+                child: Text(
+                  '완료',
+                  style: TextStyle(
                     color: Colors.white,
-                    border: Border.all(
-                      color: Colors.grey,
-                    ),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  alignment: Alignment.topLeft,
-                  child: TextField(
-                    controller: _postController,
-                    maxLines: null,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: ' 추억을 기록하세요',
-                    ),
+                    fontSize: 15,
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _submitPost,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFE4728D),
-                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
               ),
-              child: Text(
-                '완료',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
