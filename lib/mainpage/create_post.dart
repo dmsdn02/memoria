@@ -164,32 +164,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
               SizedBox(height: 16.0),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: deviceWidth * 0.9,
-                    height: 300,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.grey,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    alignment: Alignment.topLeft,
-                    child: TextField(
-                      controller: _postController,
-                      maxLines: null,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: ' 추억을 기록하세요',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16.0),
-              Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
@@ -237,6 +211,32 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     ],
                   );
                 }).toList(),
+              ),
+              SizedBox(height: 16.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: deviceWidth * 0.9,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(
+                        color: Colors.grey,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    alignment: Alignment.topLeft,
+                    child: TextField(
+                      controller: _postController,
+                      maxLines: null,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: ' 추억을 기록하세요',
+                      ),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: 16.0),
               ElevatedButton(
