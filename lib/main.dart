@@ -8,6 +8,7 @@ import 'package:memoria/startpage/start.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
+    //name: 'memoria',
     options: FirebaseOptions(
       apiKey: "AIzaSyDs79bHVta-IL6eGjnEK_Wg4ysbj08c37Q",
       authDomain: "memoria-f5d67.firebaseapp.com",
