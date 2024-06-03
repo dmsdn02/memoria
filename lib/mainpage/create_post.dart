@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:path/path.dart' as path;
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -44,11 +46,20 @@ class _CreatePostPageState extends State<CreatePostPage> {
       String currentUserId = currentUser.uid;
 
       try {
+        List<String> imageUrls = [];
+
+        // 이미지를 Firebase Storage에 업로드하고 URL을 Firestore에 저장
+        for (var imageFile in _images) {
+          String imageUrl = await _uploadImage(imageFile);
+          imageUrls.add(imageUrl);
+        }
+
         Map<String, dynamic> postData = {
           'title': title,
           'date': date,
           'content': postContent,
           'userId': currentUserId,
+          'imageUrls': imageUrls, // 이미지 URL 목록을 추가
         };
 
         await _firestore.collection('posts').add(postData);
@@ -61,6 +72,21 @@ class _CreatePostPageState extends State<CreatePostPage> {
           SnackBar(content: Text('게시물 작성 중 오류가 발생했습니다.')),
         );
       }
+    }
+  }
+
+  Future<String> _uploadImage(XFile imageFile) async {
+    try {
+      File file = File(imageFile.path);
+      String fileName = path.basename(imageFile.path);
+      Reference ref = FirebaseStorage.instance.ref().child('images/$fileName');
+      UploadTask uploadTask = ref.putFile(file);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      String imageUrl = await taskSnapshot.ref.getDownloadURL();
+      return imageUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      throw e;
     }
   }
 
@@ -242,7 +268,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ElevatedButton(
                 onPressed: _submitPost,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFE4728D),
+                  backgroundColor: Color(0xFFE4728D
+                  ),
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
