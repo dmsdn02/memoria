@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
-
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -36,42 +35,47 @@ class _CreatePostPageState extends State<CreatePostPage> {
     super.dispose();
   }
 
-  void _submitPost() async {
+  Future<void> _submitPost() async {
     String title = _titleController.text;
     String date = _dateController.text;
     String postContent = _postController.text;
 
     User? currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      String currentUserId = currentUser.uid;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('사용자가 로그인되어 있지 않습니다.')),
+      );
+      return;
+    }
 
-      try {
-        List<String> imageUrls = [];
+    String currentUserId = currentUser.uid;
 
-        // 이미지를 Firebase Storage에 업로드하고 URL을 Firestore에 저장
-        for (var imageFile in _images) {
-          String imageUrl = await _uploadImage(imageFile);
-          imageUrls.add(imageUrl);
-        }
+    try {
+      List<String> imageUrls = [];
 
-        Map<String, dynamic> postData = {
-          'title': title,
-          'date': date,
-          'content': postContent,
-          'userId': currentUserId,
-          'imageUrls': imageUrls, // 이미지 URL 목록을 추가
-        };
-
-        await _firestore.collection('posts').add(postData);
-        print('Post added successfully');
-
-        Navigator.pop(context);
-      } catch (e) {
-        print('Error submitting post: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('게시물 작성 중 오류가 발생했습니다.')),
-        );
+      // 이미지를 Firebase Storage에 업로드하고 URL을 Firestore에 저장
+      for (var imageFile in _images) {
+        String imageUrl = await _uploadImage(imageFile);
+        imageUrls.add(imageUrl);
       }
+
+      Map<String, dynamic> postData = {
+        'title': title,
+        'date': date,
+        'content': postContent,
+        'userId': currentUserId,
+        'imageUrls': imageUrls, // 이미지 URL 목록을 추가
+      };
+
+      await _firestore.collection('posts').add(postData);
+      print('Post added successfully');
+
+      Navigator.pop(context);
+    } catch (e) {
+      print('Error submitting post: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('게시물 작성 중 오류가 발생했습니다.')),
+      );
     }
   }
 
@@ -82,8 +86,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       Reference ref = FirebaseStorage.instance.ref().child('images/$fileName');
       UploadTask uploadTask = ref.putFile(file);
       TaskSnapshot taskSnapshot = await uploadTask;
-      String imageUrl = await taskSnapshot.ref.getDownloadURL();
-      return imageUrl;
+      return await taskSnapshot.ref.getDownloadURL();
     } catch (e) {
       print('Error uploading image: $e');
       throw e;
@@ -142,22 +145,23 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     ),
                   ),
                   SizedBox(width: 8.0),
-                  Container(
-                    width: deviceWidth * 0.8,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.grey,
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(
+                          color: Colors.grey,
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    alignment: Alignment.center,
-                    child: TextField(
-                      controller: _titleController,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: ' 제목을 입력하세요.',
+                      alignment: Alignment.center,
+                      child: TextField(
+                        controller: _titleController,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: ' 제목을 입력하세요.',
+                        ),
                       ),
                     ),
                   ),
@@ -268,8 +272,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ElevatedButton(
                 onPressed: _submitPost,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFE4728D
-                  ),
+                  backgroundColor: Color(0xFFE4728D),
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
