@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CreateGroupPage extends StatefulWidget {
   @override
@@ -14,6 +15,9 @@ class CreateGroupPage extends StatefulWidget {
 class _CreateGroupPageState extends State<CreateGroupPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ImagePicker _picker = ImagePicker();
+  List<XFile> _images = [];
+
 
   User? _currentUser;
   List<Map<String, dynamic>> _friends = [];
@@ -44,6 +48,16 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       }
     } catch (e) {
       print('친구 목록을 불러오는 중 오류 발생: $e');
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _images.add(pickedFile);
+      });
     }
   }
 
@@ -145,39 +159,48 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
               ),
             ),
             SizedBox(height: 8),
-            Stack(
-              alignment: Alignment.topLeft,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Container(
-                  width: 500,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 1,
-                        blurRadius: 1,
-                        offset: Offset(0, 0.1),
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: _selectedImage != null
-                      ? Image.file(_selectedImage!)
-                      : InkWell(
-                    onTap: () {
-                      _selectImage(context); // 사진 선택 함수 호출
-                    },
-                    child: Icon(
-                      Icons.add_a_photo,
-                      size: 80,
-                    ),
-                  ),
+                IconButton(
+                  icon: Icon(Icons.add_a_photo),
+                  onPressed: _pickImage,
                 ),
               ],
             ),
+            SizedBox(height: 8.0),
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: _images.map((image) {
+                return Stack(
+                  children: [
+                    Image.file(
+                      File(image.path),
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _images.remove(image);
+                          });
+                        },
+                        child: Icon(
+                          Icons.remove_circle,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+
             SizedBox(height: 16),
 
             ElevatedButton(
