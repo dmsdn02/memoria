@@ -36,6 +36,8 @@ class PostsByDatePage extends StatelessWidget {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               var post = snapshot.data!.docs[index];
+              var imageUrls = post['imageUrls'] != null ? List<String>.from(post['imageUrls']) : []; // 이미지 URL 목록
+
               return Card(
                 margin: EdgeInsets.all(10.0),
                 child: ListTile(
@@ -43,6 +45,37 @@ class PostsByDatePage extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (imageUrls.isNotEmpty)
+                        SizedBox(
+                          height: 200,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: imageUrls.length,
+                            itemBuilder: (context, imgIndex) {
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.network(
+                                  imageUrls[imgIndex],
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) {
+                                      return child;
+                                    }
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress.expectedTotalBytes != null
+                                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Text('이미지를 불러올 수 없습니다.');
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       Text(post['date']),
                       SizedBox(height: 8.0),
                       Text(post['content']),
@@ -52,6 +85,7 @@ class PostsByDatePage extends StatelessWidget {
               );
             },
           );
+
         },
       ),
     );
