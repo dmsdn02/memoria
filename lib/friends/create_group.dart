@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart'; // 추가
 
 class CreateGroupPage extends StatefulWidget {
   @override
@@ -16,8 +17,8 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ImagePicker _picker = ImagePicker();
+  final FirebaseStorage _storage = FirebaseStorage.instance; // 추가
   List<XFile> _images = [];
-
 
   User? _currentUser;
   List<Map<String, dynamic>> _friends = [];
@@ -58,6 +59,19 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       setState(() {
         _images.add(pickedFile);
       });
+    }
+  }
+
+  Future<String> _uploadImage(XFile imageFile) async {
+    try {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${imageFile.name}';
+      final ref = _storage.ref().child('group_images').child(fileName);
+      final uploadTask = await ref.putFile(File(imageFile.path));
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('이미지 업로드 중 오류 발생: $e');
+      return '';
     }
   }
 
@@ -253,19 +267,31 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   void _createGroup() async {
     try {
       if (_groupNameController.text.isNotEmpty && _selectedFriends.isNotEmpty) {
+        List<String> imageUrls = [];
+
+        // 이미지를 Firebase Storage에 업로드하고 URL을 Firestore에 저장
+        for (var imageFile in _images) {
+          String imageUrl = await _uploadImage(imageFile);
+          imageUrls.add(imageUrl);
+        }
+
         // 그룹 생성 시 그룹 이름과 선택된 그룹원을 파이어스토어에 추가
         final newGroupRef = await _firestore.collection('groups').add({
           'groupName': _groupNameController.text,
           'groupMembers': _selectedFriends.toList(),
+          'imageUrls': imageUrls, // 이미지 URL 목록을 추가
         });
+
         // 그룹 생성 완료 메시지 출력
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('그룹이 생성되었습니다.'),
         ));
+
         // 그룹 생성 후 필드 초기화
         _groupNameController.clear();
         setState(() {
           _selectedFriends.clear();
+          _images.clear(); // 이미지 리스트 초기화
         });
       } else {
         // 그룹 이름이나 그룹원이 선택되지 않았을 때 에러 메시지 출력
@@ -273,7 +299,6 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
           content: Text('그룹 이름과 그룹원을 선택해주세요.'),
         ));
       }
-
     } catch (e) {
       // 그룹 생성 중 오류 발생 시 에러 메시지 출력
       print('그룹 생성 중 오류 발생: $e');
