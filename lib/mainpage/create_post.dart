@@ -51,6 +51,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
     String currentUserId = currentUser.uid;
 
     try {
+      // 사용자 정보 가져오기
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(currentUserId).get();
+      String? username = userDoc['name'] ?? '알 수 없음';
+
       List<String> imageUrls = [];
 
       // 이미지를 Firebase Storage에 업로드하고 URL을 Firestore에 저장
@@ -64,7 +68,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
         'date': date,
         'content': postContent,
         'userId': currentUserId,
+        'username': username, // 사용자 이름 추가
         'imageUrls': imageUrls, // 이미지 URL 목록을 추가
+        'timestamp': FieldValue.serverTimestamp(), // 작성 시간 추가
       };
 
       await _firestore.collection('posts').add(postData);
@@ -78,6 +84,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       );
     }
   }
+
 
   Future<String> _uploadImage(XFile imageFile) async {
     try {
