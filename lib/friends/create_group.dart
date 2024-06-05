@@ -248,6 +248,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   void _selectImage(BuildContext context) async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
+
         type: FileType.image,
       );
       if (result != null) {
@@ -275,11 +276,14 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
           imageUrls.add(imageUrl);
         }
 
-        // 그룹 생성 시 그룹 이름과 선택된 그룹원을 파이어스토어에 추가
+        // 그룹 생성 시 그룹 이름, 선택된 그룹원, 이미지 URL, 생성자 정보를 Firestore에 추가
         final newGroupRef = await _firestore.collection('groups').add({
           'groupName': _groupNameController.text,
           'groupMembers': _selectedFriends.toList(),
           'imageUrls': imageUrls, // 이미지 URL 목록을 추가
+          'groupCreator': {
+            'email': _currentUser?.email,
+          },
         });
 
         // 그룹 생성 완료 메시지 출력
