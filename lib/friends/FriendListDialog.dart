@@ -11,6 +11,7 @@ class _FriendListDialogState extends State<FriendListDialog> {
   final TextEditingController _emailController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? _emailErrorText;
 
   @override
   void dispose() {
@@ -21,9 +22,9 @@ class _FriendListDialogState extends State<FriendListDialog> {
   Future<void> _addFriend(BuildContext context) async {
     String friendEmail = _emailController.text.trim();
     if (friendEmail.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이메일을 입력하세요.')),
-      );
+      setState(() {
+        _emailErrorText = '이메일을 입력하세요.';
+      });
       return;
     }
 
@@ -35,7 +36,6 @@ class _FriendListDialogState extends State<FriendListDialog> {
     }
 
     try {
-      // 현재 사용자 가져오기
       User? currentUser = _auth.currentUser;
       if (currentUser == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -44,11 +44,8 @@ class _FriendListDialogState extends State<FriendListDialog> {
         return;
       }
 
-      // 현재 사용자의 UID 가져오기
       String currentUserId = currentUser.uid;
-      print('Current User ID: $currentUserId');
 
-      // 친구의 이메일로 사용자 찾기
       var userQuery = await _firestore.collection('users').where('email', isEqualTo: friendEmail).get();
       if (userQuery.docs.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -57,29 +54,33 @@ class _FriendListDialogState extends State<FriendListDialog> {
         return;
       }
 
-      // 친구가 존재하는 경우
       DocumentSnapshot friendSnapshot = userQuery.docs.first;
       String friendUserId = friendSnapshot.id;
       String friendName = friendSnapshot['name'];
-      print('Friend User ID: $friendUserId');
 
-      // friends 컬렉션에 현재 사용자의 친구 목록 문서 생성/업데이트
-      DocumentReference friendsDocRef = _firestore.collection('friends').doc(currentUserId);
-      // Create or update friend's data in friends collection
-      await friendsDocRef.set({
-        '$friendUserId': {
-          'email': friendEmail,
-          'name': friendName,
+      var friendsDoc = await _firestore.collection('friends').doc(currentUserId).get();
+      if (friendsDoc.exists) {
+        var friendsData = friendsDoc.data();
+        if (friendsData != null && friendsData['friends'] != null) {
+          List<dynamic> friendsList = friendsData['friends'];
+          bool alreadyFriend = friendsList.any((friend) => friend['email'] == friendEmail);
+          if (alreadyFriend) {
+            setState(() {
+              _emailErrorText = '이미 추가된 친구입니다.';
+            });
+            return;
+          }
         }
-      }, SetOptions(merge: true));
+      }
+
+      DocumentReference friendsDocRef = _firestore.collection('friends').doc(currentUserId);
+      await friendsDocRef.update({
+        'friends': FieldValue.arrayUnion([{'email': friendEmail, 'name': friendName}]),
+      });
 
       Navigator.of(context).pop(friendEmail);
     } catch (e) {
       print('Error adding friend: $e');
-      if (e is FirebaseException) {
-        print('Firebase Error Code: ${e.code}');
-        print('Firebase Error Message: ${e.message}');
-      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('친구 추가 중 오류가 발생했습니다.')),
       );
@@ -90,10 +91,24 @@ class _FriendListDialogState extends State<FriendListDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('친구 추가'),
-      content: TextField(
-        controller: _emailController,
-        decoration: InputDecoration(hintText: '친구의 이메일을 입력하세요'),
-        keyboardType: TextInputType.emailAddress,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _emailController,
+            decoration: InputDecoration(
+              hintText: '친구의 이메일을 입력하세요',
+            ),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          if (_emailErrorText != null)
+            Text(
+              _emailErrorText!,
+              style: TextStyle(
+                color: Colors.red,
+              ),
+            ),
+        ],
       ),
       actions: <Widget>[
         TextButton(
@@ -103,7 +118,9 @@ class _FriendListDialogState extends State<FriendListDialog> {
           child: Text('취소'),
         ),
         ElevatedButton(
-          onPressed: () => _addFriend(context),
+          onPressed: () {
+            _addFriend(context);
+          },
           child: Text('추가'),
         ),
       ],

@@ -68,16 +68,45 @@ class _FriendListPageState extends State<FriendListPage> {
   }
 
   Future<void> _removeFriend(String email) async {
-    try {
-      setState(() {
-        _friends.removeWhere((friend) => friend['email'] == email);
-      });
+    bool? confirmDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('친구 삭제'),
+          content: Text('선택한 친구를 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false); // 취소 버튼
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, true); // 확인 버튼
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
 
-      await _firestore.collection('friends').doc(_currentUser!.uid).update({
-        'friends': FieldValue.arrayRemove([{'email': email}]),
-      });
-    } catch (e) {
-      print('Error removing friend: $e');
+    if (confirmDelete == true) {
+      try {
+        // 친구 목록에서 해당 친구의 정보를 가져옴
+        final friend = _friends.firstWhere((friend) => friend['email'] == email);
+
+        setState(() {
+          _friends.removeWhere((friend) => friend['email'] == email);
+        });
+
+        await _firestore.collection('friends').doc(_currentUser!.uid).update({
+          'friends': FieldValue.arrayRemove([friend]), // friend 객체를 전달하여 삭제
+        });
+      } catch (e) {
+        print('Error removing friend: $e');
+      }
     }
   }
 
@@ -86,6 +115,55 @@ class _FriendListPageState extends State<FriendListPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('이메일이 복사되었습니다.')),
     );
+  }
+
+  Future<void> _editFriendName(String friendEmail) async {
+    String? newFriendName = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        String currentName = _friends.firstWhere((friend) => friend['email'] == friendEmail)['name'];
+        TextEditingController _nameController = TextEditingController(text: currentName);
+        return AlertDialog(
+          title: Text('친구 이름 변경'),
+          content: TextField(
+            controller: _nameController,
+            decoration: InputDecoration(labelText: '새로운 이름'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // 취소 버튼
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, _nameController.text); // 확인 버튼
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (newFriendName != null && newFriendName.isNotEmpty) {
+      await _updateFriendName(friendEmail, newFriendName);
+    }
+  }
+
+  Future<void> _updateFriendName(String friendEmail, String newFriendName) async {
+    try {
+      setState(() {
+        _friends.firstWhere((friend) => friend['email'] == friendEmail)['name'] = newFriendName;
+      });
+
+      await _firestore.collection('friends').doc(_currentUser!.uid).update({
+        'friends': _friends,
+      });
+    } catch (e) {
+      print('Error updating friend name: $e');
+    }
   }
 
   @override
@@ -181,7 +259,17 @@ class _FriendListPageState extends State<FriendListPage> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       child: ListTile(
-                        title: Text(friend['name']),
+                        title: Row(
+                          children: [
+                            Text(friend['name']),
+                            IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () async {
+                                await _editFriendName(friend['email']);
+                              },
+                            ),
+                          ],
+                        ),
                         subtitle: Text(friend['email']),
                         trailing: IconButton(
                           icon: Icon(Icons.delete),
