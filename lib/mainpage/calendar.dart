@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'feed.dart';
-import 'create_post.dart';
+import 'package:provider/provider.dart';
 import '../add/mypage.dart';
 import '../add/setting.dart';
+import 'feed.dart';
+import 'package:memoria/add/groupProvider.dart';
+import 'create_post.dart';
+import 'package:memoria/add/setting.dart';
 
 class CalendarPage extends StatefulWidget {
+  final String groupId;
+  final String groupName;
+
+  CalendarPage({required this.groupId, required this.groupName});
+
   @override
   _CalendarPageState createState() => _CalendarPageState();
 }
@@ -18,11 +26,12 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     String currentYearMonth = DateFormat('yyyy년 MM월').format(selectedDate);
+    String groupName = widget.groupName.isNotEmpty ? widget.groupName : "(그룹명)";
 
     return Scaffold(
-      backgroundColor: Colors.white, // 배경색 흰색으로 변경
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Calendar Page'),
+        title: Text(groupName),
         actions: [
           IconButton(
             icon: Icon(Icons.notifications),
@@ -42,9 +51,8 @@ class _CalendarPageState extends State<CalendarPage> {
         ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0),
-          child: Divider(color: Colors.grey), // 회색 구분선
+          child: Divider(color: Colors.grey),
         ),
-        // 틴트 제거
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -54,15 +62,15 @@ class _CalendarPageState extends State<CalendarPage> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center, // 가운데 정렬
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, color: Colors.white), // 프로필 아이콘
+                  child: Icon(Icons.person, color: Colors.white),
                 ),
                 SizedBox(width: 10),
                 Text(
-                  "(그룹명)",
+                  groupName,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -80,7 +88,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 IconButton(
                   icon: Icon(Icons.calendar_today),
                   onPressed: () {
-                    _selectDate(context); // 날짜 선택 기능
+                    _selectDate(context);
                   },
                 ),
               ],
@@ -94,7 +102,7 @@ class _CalendarPageState extends State<CalendarPage> {
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         notchMargin: 6.0,
-        color: Colors.white, // 하단바 배경색 흰색으로 변경
+        color: Colors.white,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -104,13 +112,13 @@ class _CalendarPageState extends State<CalendarPage> {
                 // 질문 및 답변 기능
               },
             ),
-            SizedBox(width: 40), // 플러스 아이콘 공간
+            SizedBox(width: 40),
             IconButton(
               icon: Icon(Icons.person),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MyPage()), // MyPage로 이동
+                  MaterialPageRoute(builder: (context) => MyPage()),
                 );
               },
             ),
@@ -123,7 +131,6 @@ class _CalendarPageState extends State<CalendarPage> {
             context,
             MaterialPageRoute(builder: (context) => CreatePostPage()),
           );
-          // 플러스 아이콘 기능
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.white,
@@ -153,7 +160,6 @@ class _CalendarPageState extends State<CalendarPage> {
 
     List<Widget> gridContent = [];
 
-    // 요일을 가운데 정렬하여 출력
     gridContent.addAll(
       weekDays.map(
             (day) => Center(
@@ -162,15 +168,13 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
     );
 
-    // 첫 주에 빈 공간 추가 (해당 월의 시작 요일에 따라)
     DateTime firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
     int startWeekday = (firstDayOfMonth.weekday) % 7;
 
     for (int i = 0; i < startWeekday; i++) {
-      gridContent.add(Container()); // 빈 칸
+      gridContent.add(Container());
     }
 
-    // 날짜와 구름모양 아이콘 출력
     for (int i = 1; i <= daysInMonth; i++) {
       bool isToday = (i == today.day && selectedDate.month == today.month && selectedDate.year == today.year);
       DateTime currentDay = DateTime(selectedDate.year, selectedDate.month, i);
@@ -180,14 +184,14 @@ class _CalendarPageState extends State<CalendarPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => PostsByDatePage(selectedDate: currentDay),
+                builder: (context) => PostsByDatePage(selectedDate: currentDay, groupId: widget.groupId),
               ),
             );
           },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.cloud, color: Color(0xFFADD8E6)), // 연한 하늘색
+              Icon(Icons.cloud, color: Color(0xFFADD8E6)),
               Text(
                 i.toString(),
                 style: TextStyle(
@@ -203,7 +207,7 @@ class _CalendarPageState extends State<CalendarPage> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: GridView.count(
-        crossAxisCount: 7, // 7개 요일
+        crossAxisCount: 7,
         children: gridContent,
       ),
     );

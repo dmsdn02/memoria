@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../add/groupProvider.dart';
 
 class CreatePostPage extends StatefulWidget {
   @override
@@ -63,6 +65,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
         imageUrls.add(imageUrl);
       }
 
+      String groupId = context.read<GroupProvider>().selectedGroupId;
+
       Map<String, dynamic> postData = {
         'title': title,
         'date': date,
@@ -71,6 +75,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         'username': username, // 사용자 이름 추가
         'imageUrls': imageUrls, // 이미지 URL 목록을 추가
         'timestamp': FieldValue.serverTimestamp(), // 작성 시간 추가
+        'groupId': groupId, // 그룹 ID 추가
       };
 
       await _firestore.collection('posts').add(postData);
@@ -84,7 +89,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
       );
     }
   }
-
 
   Future<String> _uploadImage(XFile imageFile) async {
     try {
@@ -205,7 +209,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 children: [
                   Text(
                     '사진',
-                    style: TextStyle(
+                    style: TextStyle
+                      (
                       fontWeight: FontWeight.bold,
                       fontSize: 18.0,
                     ),

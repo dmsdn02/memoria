@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'post_detail.dart';
-import 'post_detail.dart'; // 이 부분에서 PostDetailPage를 import 합니다.
 
 class PostsByDatePage extends StatelessWidget {
   final DateTime selectedDate;
+  final String groupId; // 그룹 ID 추가
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  PostsByDatePage({required this.selectedDate});
+  PostsByDatePage({required this.selectedDate, required this.groupId}); // 그룹 ID를 받는 생성자
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +24,7 @@ class PostsByDatePage extends StatelessWidget {
         stream: _firestore
             .collection('posts')
             .where('date', isEqualTo: formattedDate)
+            .where('groupId', isEqualTo: groupId) // 해당 그룹의 게시물만 필터링
             .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
