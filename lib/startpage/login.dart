@@ -116,7 +116,7 @@ class LoginPage extends StatelessWidget {
                           Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => CalendarPage()),
+                            MaterialPageRoute(builder: (context) => CalendarPage(groupName: '', groupId: '',)),
                           );
                         }
                       } else {

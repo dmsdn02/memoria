@@ -3,6 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:memoria/friends/f_list.dart';
 import 'package:memoria/mainpage/calendar.dart';
 import 'package:memoria/startpage/start.dart';
+import 'package:provider/provider.dart';
+
+import 'add/groupProvider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +21,14 @@ void main() async {
     ),
   );
 
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => GroupProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
