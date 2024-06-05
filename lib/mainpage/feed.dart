@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'post_detail.dart';
+import 'post_detail.dart'; // 이 부분에서 PostDetailPage를 import 합니다.
 
 class PostsByDatePage extends StatelessWidget {
   final DateTime selectedDate;
@@ -40,68 +42,76 @@ class PostsByDatePage extends StatelessWidget {
               var username = post['username'] ?? 'Unknown User'; // 유저명
               var timestamp = post['timestamp'] != null ? DateFormat('HH:mm').format(post['timestamp'].toDate()) : 'Unknown Time'; // 작성 시간
 
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              username,
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(width: 8.0),
-                            Text(
-                              timestamp,
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8.0),
-                        Text(
-                          post['title'],
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8.0),
-                        if (imageUrls.isNotEmpty)
-                          SizedBox(
-                            height: 200,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: imageUrls.length,
-                              itemBuilder: (context, imgIndex) {
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Image.network(
-                                    imageUrls[imgIndex],
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) {
-                                        return child;
-                                      }
-                                      return Center(
-                                        child: CircularProgressIndicator(
-                                          value: loadingProgress.expectedTotalBytes != null
-                                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                              : null,
-                                        ),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Text('이미지를 불러올 수 없습니다.');
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => PostDetailPage(post: post)),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                username,
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(width: 8.0),
+                              Text(
+                                timestamp,
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
                           ),
-                        SizedBox(height: 8.0),
-                        Text(post['content']),
-                        SizedBox(height: 8.0),
-                      ],
+                          SizedBox(height: 8.0),
+                          Text(
+                            post['title'],
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 8.0),
+                          if (imageUrls.isNotEmpty)
+                            SizedBox(
+                              height: 200,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: imageUrls.length,
+                                itemBuilder: (context, imgIndex) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Image.network(
+                                      imageUrls[imgIndex],
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress.expectedTotalBytes != null
+                                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Text('이미지를 불러올 수 없습니다.');
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          SizedBox(height: 8.0),
+                          Text(post['content']),
+                          SizedBox(height: 8.0),
+                        ],
+                      ),
                     ),
                   ),
                 ),
