@@ -15,6 +15,7 @@ class _MyPageState extends State<MyPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String userName = '';
+  String userEmail = ''; // 추가: 현재 사용자의 이메일 주소
 
   @override
   void initState() {
@@ -30,6 +31,7 @@ class _MyPageState extends State<MyPage> {
         await _firestore.collection('users').doc(user.uid).get();
         setState(() {
           userName = userSnapshot['name'];
+          userEmail = userSnapshot['email']; // 추가: 현재 사용자의 이메일 주소 가져오기
         });
       }
     } catch (e) {
@@ -168,160 +170,124 @@ class _MyPageState extends State<MyPage> {
                 fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
-        Container(
-        margin: EdgeInsets.symmetric(horizontal: 0.0),
-    child: Column(
-    children: [
-      Container(
-        margin: EdgeInsets.symmetric(horizontal: 0.0),
-        child: Column(
-          children: [
-            Container(
-              width: 400, // 원하는 가로 길이로 설정
-              height: 300, // 원하는 세로 길이로 설정
-              padding: EdgeInsets.all(30.0),
-              child: StreamBuilder<QuerySnapshot>(
-                stream: _firestore.collection('groups').snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Center(child: CircularProgressIndicator());
-                  }
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 0.0),
+                  child: SingleChildScrollView(
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: _firestore.collection('groups').snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return Center(child: CircularProgressIndicator());
+                        }
 
-                  final groupDocs = snapshot.data!.docs;
+                        final groupDocs = snapshot.data!.docs;
 
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: (groupDocs.length / 2).ceil(),
-                    itemBuilder: (context, index) {
-                      final int startIndex = index * 2;
-                      final int endIndex =
-                      startIndex + 2 > groupDocs.length ? groupDocs.length : startIndex + 2;
+                        // 한 줄에 그룹을 2개씩 출력
+                        return Wrap(
+                          spacing: 1.0, // 그룹들 사이의 가로 간격 설정
+                          children: groupDocs.map((groupDoc) {
+                            final groupCreatorEmail = groupDoc['groupCreator']['email']; // 수정된 부분
+                            final groupName = groupDoc['groupName'];
+                            final imageUrls = groupDoc['imageUrls'] != null ? List<String>.from(groupDoc['imageUrls']) : [];
 
-                      return Row(
-                        children: List.generate(
-                          endIndex - startIndex,
-                              (innerIndex) {
-                            final post = groupDocs[startIndex + innerIndex];
-                            final groupCreatorEmail = post['groupCreator']['email']; // 수정된 부분
-                            final imageUrls = post['imageUrls'] != null
-                                ? List<String>.from(post['imageUrls'])
-                                : [];
-
-                            return Expanded(
-                              child: Card(
-                                color: Colors.pink[50],
-                                margin: EdgeInsets.all(8.0),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(5.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      if (imageUrls.isNotEmpty)
-                                        SizedBox(
-                                          height: 150, // 원하는 높이로 설정
-                                          width: 400, // 카드의 가로를 전체로 사용
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Expanded(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                                  child: Center(
-                                                    child: Row(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      children: List.generate(
-                                                        imageUrls.length,
-                                                            (imgIndex) {
-                                                          return Padding(
-                                                            padding: const EdgeInsets.all(9.0),
-                                                            child: Image.network(
-                                                              imageUrls[imgIndex],
-                                                              height: 150, // 원하는 이미지 높이로 설정
-                                                              width: 100, // 원하는 이미지 너비로 설정
-                                                              loadingBuilder: (context, child, loadingProgress) {
-                                                                if (loadingProgress == null) {
-                                                                  return child;
-                                                                }
-                                                                return Center(
-                                                                  child: CircularProgressIndicator(
-                                                                    value: loadingProgress.expectedTotalBytes != null
-                                                                        ? loadingProgress.cumulativeBytesLoaded /
-                                                                        loadingProgress.expectedTotalBytes!
-                                                                        : null,
-                                                                  ),
-                                                                );
-                                                              },
-                                                              errorBuilder: (context, error, stackTrace) {
-                                                                return Text('이미지를 불러올 수 없습니다.');
-                                                              },
-                                                            ),
-                                                          );
-                                                        },
-                                                      ),
+                            if (groupCreatorEmail == userEmail) {
+                              return Container(
+                                child: SizedBox(
+                                  width: MediaQuery.of(context).size.width / 2 - 24.0, // 화면 너비의 절반에 해당하는 너비 설정
+                                  child: Card(
+                                    color: Colors.blue[50],
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          if (imageUrls.isNotEmpty)
+                                            SizedBox(
+                                              height: 110, // 원하는 높이로 설정
+                                              child: ListView.builder(
+                                                scrollDirection: Axis.horizontal,
+                                                itemCount: imageUrls.length,
+                                                itemBuilder: (context, imgIndex) {
+                                                  return Padding(
+                                                    padding: const EdgeInsets.all(9.0),
+                                                    child: Image.network(
+                                                      imageUrls[imgIndex],
+                                                      height: 130, // 원하는 이미지 높이로 설정
+                                                      width: 130, // 원하는 이미지 너비로 설정
+                                                      loadingBuilder: (context, child, loadingProgress) {
+                                                        if (loadingProgress == null) {
+                                                          return child;
+                                                        }
+                                                        return Center(
+                                                          child: CircularProgressIndicator(
+                                                            value: loadingProgress.expectedTotalBytes != null
+                                                                ? loadingProgress.cumulativeBytesLoaded /
+                                                                loadingProgress.expectedTotalBytes!
+                                                                : null,
+                                                          ),
+                                                        );
+                                                      },
+                                                      errorBuilder: (context, error, stackTrace) {
+                                                        return Text('이미지를 불러올 수 없습니다.');
+                                                      },
                                                     ),
-                                                  ),
-                                                ),
+                                                  );
+                                                },
                                               ),
-
-
-                                            ],
+                                            ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                                            child: Text(
+                                              groupName,
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                            ),
                                           ),
-                                        ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                        child: Text(
-                                          post['groupName'],
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                        ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
+                              );
+                            } else {
+                              return SizedBox(); // 그룹 생성자와 현재 사용자의 이메일이 다른 경우 아무것도 표시하지 않음
+                            }
+                          }).toList(),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+
+
+
+                Container(
+        padding: EdgeInsets.all(15.0),
+    decoration: BoxDecoration(
+    color: Colors.grey[200],
+    borderRadius: BorderRadius.circular(10.0),
+    ),
+
+          child: Row(
+            children: [
+              Icon(Icons.add, color: Colors.black),
+              SizedBox(width: 8),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CreateGroupPage()),
                   );
                 },
+                child: Text(
+                  "그룹 생성하기",
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-
-      Container(
-        padding: EdgeInsets.all(15.0),
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.add, color: Colors.black),
-            SizedBox(width: 8),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => CreateGroupPage()),
-                );
-              },
-              child: Text(
-                "그룹 생성하기",
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-    ),
+            ],
+          ),
         ),
               ],
           ),
