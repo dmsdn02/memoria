@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 class PostDetailPage extends StatelessWidget {
@@ -12,6 +13,7 @@ class PostDetailPage extends StatelessWidget {
     var imageUrls = post['imageUrls'] != null ? List<String>.from(post['imageUrls']) : []; // 이미지 URL 목록
     var username = post['username'] ?? 'Unknown User'; // 유저명
     var timestamp = post['timestamp'] != null ? DateFormat('HH:mm').format(post['timestamp'].toDate()) : 'Unknown Time'; // 작성 시간
+    var title = post['title'] ?? 'No Title'; // 제목
     String content = post['content'];
 
     return Scaffold(
@@ -42,8 +44,8 @@ class PostDetailPage extends StatelessWidget {
                   ),
                   SizedBox(height: 8.0),
                   Text(
-                    content,
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    title,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8.0),
                   if (imageUrls.isNotEmpty)
@@ -77,12 +79,115 @@ class PostDetailPage extends StatelessWidget {
                         },
                       ),
                     ),
+                  SizedBox(height: 8.0),
+                  Text(
+                    content,
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ],
               ),
+            ),
+            Divider(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CommentSection(postId: post.id),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class CommentSection extends StatefulWidget {
+  final String postId;
+
+  CommentSection({required this.postId});
+
+  @override
+  _CommentSectionState createState() => _CommentSectionState();
+}
+
+class _CommentSectionState extends State<CommentSection> {
+  final TextEditingController _commentController = TextEditingController();
+  User? _currentUser;
+  String? _currentUsername;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCurrentUser();
+  }
+
+  Future<void> _fetchCurrentUser() async {
+    _currentUser = FirebaseAuth.instance.currentUser;
+    if (_currentUser != null) {
+      var userDoc = await FirebaseFirestore.instance.collection('users').doc(_currentUser!.uid).get();
+      if (userDoc.exists) {
+        setState(() {
+          _currentUsername = userDoc.data()!['name'];
+        });
+      }
+    }
+  }
+
+  void _submitComment() {
+    if (_commentController.text.isNotEmpty && _currentUser != null && _currentUsername != null) {
+      FirebaseFirestore.instance.collection('comments').add({
+        'postId': widget.postId,
+        'comment': _commentController.text,
+        'username': _currentUsername,
+        'timestamp': Timestamp.now(),
+      });
+      _commentController.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _commentController,
+          decoration: InputDecoration(
+            labelText: '댓글 작성',
+            suffixIcon: IconButton(
+              icon: Icon(Icons.send),
+              onPressed: _submitComment,
+            ),
+          ),
+        ),
+        SizedBox(height: 8.0),
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('comments')
+              .where('postId', isEqualTo: widget.postId)
+              .orderBy('timestamp', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Center(child: CircularProgressIndicator());
+            }
+            var comments = snapshot.data!.docs;
+            if (comments.isEmpty) {
+              return Text('댓글이 없습니다.');
+            }
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: comments.length,
+              itemBuilder: (context, index) {
+                var comment = comments[index];
+                return ListTile(
+                  title: Text(comment['comment']),
+                  subtitle: Text('${comment['username']} - ${DateFormat('yyyy-MM-dd HH:mm').format(comment['timestamp'].toDate())}'),
+                );
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 }
