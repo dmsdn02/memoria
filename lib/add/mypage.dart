@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../friends/create_group.dart';
 import '../friends/f_list.dart';
 import '../mainpage/calendar.dart';
+import '../add/myrecord.dart'; // 수정된 부분
+
 import 'groupProvider.dart';
 import 'setting.dart';
 
@@ -122,6 +124,10 @@ class _MyPageState extends State<MyPage> {
                             icon: Icon(Icons.book),
                             onPressed: () {
                               // 나의 기록 기능
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => MyRecordPage()),
+                              );
                             },
                           ),
                           Text("나의 기록"),
