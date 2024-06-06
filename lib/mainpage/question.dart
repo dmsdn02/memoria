@@ -113,40 +113,51 @@ class _QuestionPageState extends State<QuestionPage> {
   void _showFriendsAnswersDialog() async {
     if (!_hasAnsweredCurrentQuestion) {
       showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
+          context: context,
+          builder: (context) => AlertDialog(
           title: Text('알림'),
-          content: Text('답변을 완료해야 친구의 답변을 볼 수 있습니다.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('확인'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
+    content: Text('답변을 완료해야 친구의 답변을 볼 수 있습니다.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('확인'),
+              ),
+            ],
+          ));
+          return;
+          }
 
-    List<String> friendsAnswers =
-    await _loadFriendsAnswers(_currentQuestionIndex); // 현재 질문 인덱스 전달
-    showDialog(
+          List<String> friendsAnswers =
+          await _loadFriendsAnswers(_currentQuestionIndex); // 현재 질문 인덱스 전달
+      showDialog(
         context: context,
         builder: (context) => AlertDialog(
-        title: Text('친구들의 답변'),
-    content: Container(
-    width: double.maxFinite,
-    child
-        : ListView.builder(
-      shrinkWrap: true,
-      itemCount: friendsAnswers.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(friendsAnswers[index]),
-        );
-      },
-    ),
-    ),
+          title: Text('친구들의 답변'),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: friendsAnswers.length,
+              itemBuilder: (context, index) {
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    margin: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20.0),
+                        bottomRight: Radius.circular(20.0),
+                        topRight: Radius.circular(20.0),
+                      ),
+                    ),
+                    child: Text(friendsAnswers[index]),
+                  ),
+                );
+              },
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -154,8 +165,8 @@ class _QuestionPageState extends State<QuestionPage> {
             ),
           ],
         ),
-    );
-  }
+      );
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -228,10 +239,10 @@ class _QuestionPageState extends State<QuestionPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CalendarPage()),
-          );
+          //Navigator.push(
+            //context,
+            //MaterialPageRoute(builder: (context) => CalendarPage()),
+          //);
         },
         child: Icon(Icons.home),
         backgroundColor: Colors.white,
