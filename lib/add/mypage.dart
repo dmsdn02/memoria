@@ -6,7 +6,7 @@ import '../friends/create_group.dart';
 import '../friends/f_list.dart';
 import '../mainpage/calendar.dart';
 import '../add/myrecord.dart'; // 수정된 부분
-
+import '../mainpage/question.dart';
 import 'groupProvider.dart';
 import 'setting.dart';
 
@@ -326,7 +326,7 @@ class _MyPageState extends State<MyPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => QuestionAnswerPage()),
+                  MaterialPageRoute(builder: (context) => QuestionPage()),
                 );
               },
             ),
@@ -347,17 +347,4 @@ class _MyPageState extends State<MyPage> {
   }
 }
 
-class QuestionAnswerPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text("Question & Answer"),
-      ),
-      body: Center(
-        child: Text("This is the Question & Answer page."),
-      ),
-    );
-  }
-}
+
