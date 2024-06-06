@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
 import '../add/mypage.dart';
 import '../add/setting.dart';
 import 'feed.dart';
@@ -184,7 +183,7 @@ class _CalendarPageState extends State<CalendarPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => PostsByDatePage(selectedDate: currentDay, groupId: widget.groupId),
+                builder: (context) => PostsByDatePage(initialDate: currentDay, groupId: widget.groupId), // 변경된 부분
               ),
             );
           },
