@@ -23,6 +23,8 @@ class _QuestionPageState extends State<QuestionPage> {
     '가족과 함께한 최고의 추억은 무엇인가요?',
     '친구들과 함께 도전해 보고 싶은 활동은 무엇인가요?'
   ];
+  List<String> _groupAnswers = [];
+  List<String> _friendAnswers = [];
   bool _hasAnsweredCurrentQuestion = false;
   bool _allGroupMembersAnswered = false;
 
@@ -59,9 +61,11 @@ class _QuestionPageState extends State<QuestionPage> {
         'timestamp': FieldValue.serverTimestamp(),
       });
       setState(() {
+        _groupAnswers.add(answer);
         _hasAnsweredCurrentQuestion = true;
       });
       _checkAllGroupMembersAnswered();
+      _loadFriendsAnswers(_currentQuestionIndex);
     } catch (error) {
       print('답변을 제출하는 데 실패했습니다: $error');
     }
@@ -84,6 +88,8 @@ class _QuestionPageState extends State<QuestionPage> {
             _answerController.clear();
             _hasAnsweredCurrentQuestion = false;
             _allGroupMembersAnswered = false;
+            _groupAnswers.clear();
+            _friendAnswers.clear();
           }
         });
       } else {
@@ -96,77 +102,88 @@ class _QuestionPageState extends State<QuestionPage> {
     }
   }
 
-  Future<List<String>> _loadFriendsAnswers(int questionIndex) async {
+  Future<void> _loadFriendsAnswers(int questionIndex) async {
     try {
       QuerySnapshot answerSnapshot = await FirebaseFirestore.instance
           .collection('answers')
           .where('questionIndex', isEqualTo: questionIndex)
           .where('groupId', isEqualTo: '그룹ID') // 실제 그룹 ID를 여기에 넣으세요
           .get();
-      return answerSnapshot.docs.map((doc) => doc['answer'] as String).toList();
+      setState(() {
+        _friendAnswers = answerSnapshot.docs
+            .map((doc) => doc['answer'] as String)
+            .where((answer) => !_groupAnswers.contains(answer))
+            .toList();
+      });
     } catch (error) {
       print('친구들의 답변을 불러오는 데 실패했습니다: $error');
-      return [];
     }
   }
 
-  void _showFriendsAnswersDialog() async {
-    if (!_hasAnsweredCurrentQuestion) {
-      showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-          title: Text('알림'),
-    content: Text('답변을 완료해야 친구의 답변을 볼 수 있습니다.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('확인'),
-              ),
-            ],
-          ));
-          return;
-          }
+  @override
+  Widget build(BuildContext context) {
+    return QuestionPageDesign(
+      questions: _questions,
+      currentQuestionIndex: _currentQuestionIndex,
+      allGroupMembersAnswered: _allGroupMembersAnswered,
+      hasAnsweredCurrentQuestion: _hasAnsweredCurrentQuestion,
+      groupAnswers: _groupAnswers,
+      friendAnswers: _friendAnswers,
+      answerController: _answerController,
+      onSubmitAnswer: () {
+        String answer = _answerController.text.trim();
+        if (answer.isNotEmpty) {
+          _submitAnswer(answer);
+        }
+      },
+      onHomeButtonPressed: () {
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => CalendarPage()),
+        // );
+      },
+      onQuestionIconPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => QuestionPage()),
+        );
+      },
+      onPersonIconPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MyPage()),
+        );
+      },
+    );
+  }
+}
 
-          List<String> friendsAnswers =
-          await _loadFriendsAnswers(_currentQuestionIndex); // 현재 질문 인덱스 전달
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('친구들의 답변'),
-          content: Container(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: friendsAnswers.length,
-              itemBuilder: (context, index) {
-                return Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(vertical: 4.0),
-                    padding: EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20.0),
-                        bottomRight: Radius.circular(20.0),
-                        topRight: Radius.circular(20.0),
-                      ),
-                    ),
-                    child: Text(friendsAnswers[index]),
-                  ),
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('닫기'),
-            ),
-          ],
-        ),
-      );
-    }
+class QuestionPageDesign extends StatelessWidget {
+  final List<String> questions;
+  final int currentQuestionIndex;
+  final bool allGroupMembersAnswered;
+  final bool hasAnsweredCurrentQuestion;
+  final List<String> groupAnswers;
+  final List<String> friendAnswers;
+  final TextEditingController answerController;
+  final VoidCallback onSubmitAnswer;
+  final VoidCallback onHomeButtonPressed;
+  final VoidCallback onQuestionIconPressed;
+  final VoidCallback onPersonIconPressed;
+
+  QuestionPageDesign({
+    required this.questions,
+    required this.currentQuestionIndex,
+    required this.allGroupMembersAnswered,
+    required this.hasAnsweredCurrentQuestion,
+    required this.groupAnswers,
+    required this.friendAnswers,
+    required this.answerController,
+    required this.onSubmitAnswer,
+    required this.onHomeButtonPressed,
+    required this.onQuestionIconPressed,
+    required this.onPersonIconPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +192,7 @@ class _QuestionPageState extends State<QuestionPage> {
         title: Text('오늘의 질문'),
         automaticallyImplyLeading: false, // 뒤로가기 버튼 숨기기
         backgroundColor: Colors.white, // 상단 앱바 색상을 흰색으로 설정
-        iconTheme: IconThemeData(color: Colors.black), // 아이콘 색상을 검정색으로 설정
+        iconTheme: IconThemeData(color: Colors.black), // 아이콘 색
       ),
       backgroundColor: Colors.white, // 바탕색을 흰색으로 설정
       body: Padding(
@@ -183,34 +200,66 @@ class _QuestionPageState extends State<QuestionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 상단에 질문 아이콘
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.question_answer, size: 48.0),
-              ],
-            ),
-            SizedBox(height: 20),
-            // 오늘의 질문 또는 알림 메시지
-            Container(
-              padding: EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Text(
-                _allGroupMembersAnswered
-                    ? '모든 그룹원이 답변을 완료했습니다. 다음 질문으로 넘어갑니다.'
-                    : _hasAnsweredCurrentQuestion
-                    ? '아직 답변을 하지 않은 그룹원이 있습니다! 모든 그룹원 답변 시 다음 질문으로 넘어갑니다.'
-                    : _questions[_currentQuestionIndex],
-                style: TextStyle(fontSize: 16.0),
+            // 질문 말풍선
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: EdgeInsets.all(12.0),
+                margin: EdgeInsets.only(bottom: 12.0),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Text(
+                  questions[currentQuestionIndex],
+                  style: TextStyle(fontSize: 16.0),
+                ),
               ),
             ),
-            SizedBox(height: 20),
+            // 친구들의 답변
+            Expanded(
+              child: ListView.builder(
+                itemCount: groupAnswers.length + friendAnswers.length,
+                itemBuilder: (context, index) {
+                  if (index < groupAnswers.length) {
+                    return Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: EdgeInsets.all(12.0),
+                        margin: EdgeInsets.symmetric(vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[200],
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Text(
+                          groupAnswers[index],
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: EdgeInsets.all(12.0),
+                        margin: EdgeInsets.symmetric(vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: Colors.green[200],
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Text(
+                          friendAnswers[index - groupAnswers.length],
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
             // 답변 입력란
             TextField(
-              controller: _answerController,
+              controller: answerController,
               decoration: InputDecoration(
                 labelText: '답변',
                 border: OutlineInputBorder(),
@@ -220,30 +269,14 @@ class _QuestionPageState extends State<QuestionPage> {
             SizedBox(height: 20),
             // 답변 전송 버튼
             ElevatedButton(
-              onPressed: () {
-                String answer = _answerController.text.trim();
-                if (answer.isNotEmpty) {
-                  _submitAnswer(answer);
-                }
-              },
+              onPressed: onSubmitAnswer,
               child: Text('전송'),
-            ),
-            SizedBox(height: 20),
-            // 친구의 답변 보기 버튼
-            ElevatedButton(
-              onPressed: _showFriendsAnswersDialog,
-              child: Text('친구의 답변 보기'),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          //Navigator.push(
-            //context,
-            //MaterialPageRoute(builder: (context) => CalendarPage()),
-          //);
-        },
+        onPressed: onHomeButtonPressed,
         child: Icon(Icons.home),
         backgroundColor: Colors.white,
       ),
@@ -257,22 +290,12 @@ class _QuestionPageState extends State<QuestionPage> {
           children: [
             IconButton(
               icon: Icon(Icons.question_answer),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => QuestionPage()),
-                );
-              },
+              onPressed: onQuestionIconPressed,
             ),
             SizedBox(width: 40), // 플러스 아이콘 공간
             IconButton(
               icon: Icon(Icons.person),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => MyPage()),
-                );
-              },
+              onPressed: onPersonIconPressed,
             ),
           ],
         ),
