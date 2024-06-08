@@ -99,11 +99,16 @@ class _PostsByDatePageState extends State<PostsByDatePage> {
                 var timestamp = post['timestamp'] != null ? DateFormat('HH:mm').format(post['timestamp'].toDate()) : 'Unknown Time';
 
                 return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    var result = await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => PostDetailPage(post: post)),
                     );
+                    if (result == 'deleted') {
+                      setState(() {
+                        _postsByDate[formattedDate]?.remove(post);
+                      });
+                    }
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -140,8 +145,7 @@ class _PostsByDatePageState extends State<PostsByDatePage> {
                                   itemCount: imageUrls.length,
                                   itemBuilder: (context, imgIndex) {
                                     return Padding(
-                                      padding
-                                          : const EdgeInsets.all(8.0),
+                                      padding: const EdgeInsets.all(8.0),
                                       child: Image.network(
                                         imageUrls[imgIndex],
                                         loadingBuilder: (context, child, loadingProgress) {
