@@ -302,11 +302,12 @@ class _MyPageState extends State<MyPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          String selectedGroupId = context.read<GroupProvider>().selectedGroupId;
           String selectedGroupName = context.read<GroupProvider>().selectedGroupName;
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CalendarPage(groupName: selectedGroupName, groupId: '',),
+              builder: (context) => CalendarPage(groupName: selectedGroupName, groupId: selectedGroupId,),
             ),
           );
         },
