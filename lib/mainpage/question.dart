@@ -4,6 +4,11 @@ import 'calendar.dart';
 import '../add/mypage.dart';
 
 class QuestionPage extends StatefulWidget {
+  final String groupId;
+  final String userId;
+
+  QuestionPage({required this.groupId, required this.userId});
+
   @override
   _QuestionPageState createState() => _QuestionPageState();
 }
@@ -84,23 +89,18 @@ class _QuestionPageState extends State<QuestionPage> {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('answers')
           .where('questionIndex', isEqualTo: questionIndex)
+          .where('groupId', isEqualTo: widget.groupId)
           .get();
 
-      List<String> friendAnswers = snapshot.docs.map((doc) => doc['answer'] as String).toList();
+      List<String> friendAnswers = snapshot.docs
+          .where((doc) => doc['userId'] != widget.userId) // 내 답변 제외
+          .map((doc) => doc['answer'] as String)
+          .toList();
 
       setState(() {
         for (var answer in friendAnswers) {
           _allChatItems.add({'type': 'answer', 'content': answer, 'isGroupAnswer': true});
         }
-
-        if (_currentQuestionIndex < _questions.length - 1) {
-          _currentQuestionIndex++;
-          _allChatItems.add({'type': 'question', 'content': _questions[_currentQuestionIndex]['question']});
-        }
-
-        _answerController.clear();
-        _hasAnsweredCurrentQuestion = false;
-        _hasSubmittedCurrentAnswer = false;
       });
     } catch (error) {
       print('친구 답변을 불러오는 데 실패했습니다: $error');
@@ -112,29 +112,32 @@ class _QuestionPageState extends State<QuestionPage> {
       await FirebaseFirestore.instance.collection('answers').add({
         'questionIndex': _currentQuestionIndex,
         'answer': answer,
-        'userId': '사용자ID', // 실제 사용자 ID를 여기에 넣으세요
-        'groupId': '그룹ID',  // 실제 그룹 ID를 여기에 넣으세요
+        'userId': widget.userId,
+        'groupId': widget.groupId,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
       setState(() {
+        // 내 답변을 _allChatItems에 추가
         _allChatItems.add({'type': 'answer', 'content': answer, 'isGroupAnswer': false});
-        _hasAnsweredCurrentQuestion = true; // 사용자가 답변을 제출했으므로 true로 설정
-        _hasSubmittedCurrentAnswer = true; // 사용자가 최근 답변을 제출했으므로 true로 설정
+        _hasAnsweredCurrentQuestion = true;
+        _hasSubmittedCurrentAnswer = true;
       });
 
       await _loadFriendsAnswers(_currentQuestionIndex);
 
-      // 다음 질문이 있는지 확인하고 추가
+      // 다음 질문으로 넘어가는 로직을 분리
       if (_currentQuestionIndex < _questions.length - 1) {
-        _currentQuestionIndex++;
-        _allChatItems.add({'type': 'question', 'content': _questions[_currentQuestionIndex]['question']});
+        setState(() {
+          _currentQuestionIndex++;
+          _allChatItems.add({'type': 'question', 'content': _questions[_currentQuestionIndex]['question']});
+          _answerController.clear();
+        });
       }
     } catch (error) {
       print('답변을 제출하는 데 실패했습니다: $error');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +175,7 @@ class _QuestionPageState extends State<QuestionPage> {
                       ),
                     );
                   } else {
-                    return _hasSubmittedCurrentAnswer ? SizedBox.shrink() : chatItem['isGroupAnswer']
+                    return chatItem['isGroupAnswer']
                         ? Align(
                       alignment: Alignment.centerLeft,
                       child: Container(
@@ -232,7 +235,7 @@ class _QuestionPageState extends State<QuestionPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // 홈 버튼이 눌렸을 때 수
+          // 홈 버튼이 눌렸을 때 수행할 작업을 여기에 작성하세요.
         },
         child: Icon(Icons.home),
         backgroundColor: Colors.white,
@@ -250,7 +253,7 @@ class _QuestionPageState extends State<QuestionPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => QuestionPage()),
+                  MaterialPageRoute(builder: (context) => QuestionPage(groupId: widget.groupId, userId: widget.userId)),
                 );
               },
             ),
@@ -263,160 +266,6 @@ class _QuestionPageState extends State<QuestionPage> {
                   MaterialPageRoute(builder: (context) => MyPage()),
                 );
               },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class QuestionPageDesign extends StatelessWidget {
-  final List<String> questions;
-  final int currentQuestionIndex;
-  final bool allGroupMembersAnswered;
-  final bool hasAnsweredCurrentQuestion;
-  final List<String> groupAnswers;
-  final List<String> friendAnswers;
-  final TextEditingController answerController;
-  final VoidCallback onSubmitAnswer;
-  final VoidCallback onHomeButtonPressed;
-  final VoidCallback onQuestionIconPressed;
-  final VoidCallback onPersonIconPressed;
-
-  QuestionPageDesign({
-    required this.questions,
-    required this.currentQuestionIndex,
-    required this.allGroupMembersAnswered,
-    required this.hasAnsweredCurrentQuestion,
-    required this.groupAnswers,
-    required this.friendAnswers,
-    required this.answerController,
-    required this.onSubmitAnswer,
-    required this.onHomeButtonPressed,
-    required this.onQuestionIconPressed,
-    required this.onPersonIconPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('오늘의 질문'),
-          automaticallyImplyLeading: false, // 뒤로가기 버튼 숨기기
-          backgroundColor: Colors.white, // 상단 앱바 색상을 흰색으로 설정
-          iconTheme: IconThemeData(color: Colors.black), // 아이콘 색
-        ),
-        backgroundColor: Colors.white, // 바탕색을 흰색으로 설정
-        body: Padding(
-        padding: EdgeInsets.all(16.0),
-    child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-// 질문 말풍선
-    Align(
-    alignment: Alignment.centerLeft,
-    child: Container(
-    padding: EdgeInsets.all(12.0),
-    margin: EdgeInsets.only(bottom: 12.0),
-    decoration: BoxDecoration(
-    color: Colors.grey[200],
-    borderRadius: BorderRadius.circular(8.0),
-    ),
-    child: Text(
-    questions[currentQuestionIndex],
-    style: TextStyle(fontSize: 16.0),
-    ),
-    ),
-    ),
-// 친구들의 답변
-      Expanded(
-        child: ListView.builder(
-          itemCount: groupAnswers.length + friendAnswers.length,
-          itemBuilder: (context, index) {
-            if (index < groupAnswers.length) {
-              // 그룹원의 답변인 경우
-              return Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  padding: EdgeInsets.all(12.0),
-                  margin: EdgeInsets.symmetric(vertical: 4.0),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[200],
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Text(
-                    groupAnswers[index],
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                ),
-              );
-            } else if (index >= groupAnswers.length + friendAnswers.length - 2 && hasAnsweredCurrentQuestion) {
-              // 친구의 답변인 경우 중에서 최근 2개의 답변인 경우
-              return SizedBox.shrink();
-            } else {
-              // 나머지 친구의 답변인 경우
-              return Align(
-                alignment: Alignment.centerLeft, // 왼쪽 정렬
-                child: Container(
-                  padding: EdgeInsets.all(12.0),
-                  margin: EdgeInsets.symmetric(vertical: 4.0),
-                  decoration: BoxDecoration(
-                    color: Colors.green[200],
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Text(
-                    friendAnswers[index - groupAnswers.length],
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                ),
-              );
-            }
-          },
-        ),
-      ),
-
-
-// 답변 입력란
-      TextField(
-        controller: answerController,
-        decoration: InputDecoration(
-          labelText: '답변',
-          border: OutlineInputBorder(),
-        ),
-        maxLines: null, // 다중 라인 입력
-
-      ),
-      SizedBox(height: 20),
-// 답변 전송 버튼
-      ElevatedButton(
-        onPressed: onSubmitAnswer,
-        child: Text('전송'),
-      ),
-    ],
-    ),
-        ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: onHomeButtonPressed,
-        child: Icon(Icons.home),
-        backgroundColor: Colors.white,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        notchMargin: 6.0,
-        color: Colors.white,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: Icon(Icons.question_answer),
-              onPressed: onQuestionIconPressed,
-            ),
-            SizedBox(width: 40),
-            IconButton(
-              icon: Icon(Icons.person),
-              onPressed: onPersonIconPressed,
             ),
           ],
         ),
