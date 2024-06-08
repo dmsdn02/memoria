@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:memoria/mainpage/question.dart';
 import 'package:provider/provider.dart';
 import '../add/mypage.dart';
 import '../add/setting.dart';
@@ -127,6 +128,12 @@ class _CalendarPageState extends State<CalendarPage> {
             IconButton(
               icon: Icon(Icons.question_answer),
               onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => QuestionPage(groupId: widget.groupId, userId: ''), // 수정된 부분
+                  ),
+                );
                 // 질문 및 답변 기능
               },
             ),
@@ -198,33 +205,33 @@ class _CalendarPageState extends State<CalendarPage> {
       bool? hasPost = calendarData[i]; // 해당 날짜에 게시물이 있는지 확인
 
       gridContent.add(
-        GestureDetector(
-          onTap: () {
-            DateTime currentDay = DateTime(selectedDate.year, selectedDate.month, i);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PostsByDatePage(initialDate: currentDay, groupId: widget.groupId),
-              ),
-            );
-          },
-          child: Container(
-            color: hasPost != null && hasPost ? Colors.white.withOpacity(0.5) : Colors.white, // 항상 흰 배경색으로 유지하도록 변경
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.cloud, color: hasPost != null && hasPost ? Color(0xFFFFC5D3) : Color(0xFFADD8E6)), // 게시물이 있는 날짜면 구름 색상을 핑크로 변경
-                // 게시물이 있는 날짜면 구름 색상 변경
-                Text(
-                  i.toString(),
-                  style: TextStyle(
-                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+          GestureDetector(
+              onTap: () {
+                DateTime currentDay = DateTime(selectedDate.year, selectedDate.month, i);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PostsByDatePage(initialDate: currentDay, groupId: widget.groupId, userId: ""), // 오류 수정된 부분
                   ),
+                );
+              },
+              child: Container(
+              color: hasPost != null && hasPost ? Colors.white.withOpacity(0.5) : Colors.white, // 항상 흰 배경색으로 유지하도록 변경
+          child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.cloud, color: hasPost != null && hasPost ? Color(0xFFFFC5D3) : Color(0xFFADD8E6)), // 게시물이 있는 날짜면 구름 색상을 핑크로 변경
+              // 게시물이 있는 날짜면 구름 색상 변경
+              Text(
+                i.toString(),
+                style: TextStyle(
+                  fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ),
+              ),
+          ),
       );
 
     }
@@ -267,3 +274,15 @@ class _CalendarPageState extends State<CalendarPage> {
 
 }
 
+class PostsByDatePage extends StatelessWidget {
+  final DateTime initialDate;
+  final String groupId;
+  final String userId;
+
+  const PostsByDatePage({Key? key, required this.initialDate, required this.groupId, required this.userId}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(); // 여기에 해당 날짜에 해당하는 게시물을 보여주는 위젯을 작성하세요.
+  }
+}
