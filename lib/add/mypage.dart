@@ -187,11 +187,20 @@ class _MyPageState extends State<MyPage> {
                     return Wrap(
                       spacing: 1.0,
                       children: groupDocs.map((groupDoc) {
-                        final groupCreatorEmail = groupDoc['groupCreator']['email'];
+                        final groupMembers = groupDoc['groupMembers']; // 그룹 멤버 목록
+                        final groupCreator = groupDoc['groupCreator']; // 그룹 생성자 정보
                         final groupName = groupDoc['groupName'];
-                        final imageUrls = groupDoc['imageUrls'] != null ? List<String>.from(groupDoc['imageUrls']) : [];
+                        final imageUrls = groupDoc['imageUrls'] != null
+                            ? List<String>.from(groupDoc['imageUrls'])
+                            : [];
 
-                        if (groupCreatorEmail == userEmail) {
+                        // 그룹 멤버 중에 현재 사용자의 이메일이 있는지 확인
+                        bool isUserInGroup = groupMembers.any((member) => member['email'] == userEmail);
+
+                        // 그룹 생성자의 이메일과 현재 사용자의 이메일이 같은지 확인
+                        bool isUserGroupCreator = groupCreator['email'] == userEmail;
+
+                        if (isUserInGroup || isUserGroupCreator) {
                           return Container(
                             child: SizedBox(
                               width: MediaQuery.of(context).size.width / 2 - 24.0,
@@ -286,7 +295,8 @@ class _MyPageState extends State<MyPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => CreateGroupPage()),
+                          builder: (context) => CreateGroupPage(),
+                        ),
                       );
                     },
                     child: Text(
@@ -347,5 +357,4 @@ class _MyPageState extends State<MyPage> {
     );
   }
 }
-
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Provides and manages group-related data.
 class GroupProvider with ChangeNotifier {
   String _selectedGroupId = '';
   String _selectedGroupName = '';
@@ -7,9 +8,19 @@ class GroupProvider with ChangeNotifier {
   String get selectedGroupId => _selectedGroupId;
   String get selectedGroupName => _selectedGroupName;
 
-  void selectGroup(String groupId, String groupName) {
+  set selectedGroupId(String groupId) {
     _selectedGroupId = groupId;
+    notifyListeners();
+  }
+
+  set selectedGroupName(String groupName) {
     _selectedGroupName = groupName;
     notifyListeners();
+  }
+
+  /// Selects a group with the given [groupId] and [groupName].
+  void selectGroup(String groupId, String groupName) {
+    selectedGroupId = groupId;
+    selectedGroupName = groupName;
   }
 }
