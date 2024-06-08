@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import '../add/groupProvider.dart';
 import 'calendar.dart';
 import '../add/mypage.dart';
 
@@ -13,7 +15,7 @@ class QuestionPage extends StatefulWidget {
   _QuestionPageState createState() => _QuestionPageState();
 }
 
-class _QuestionPageState extends State<QuestionPage> {
+class _QuestionPageState extends State<QuestionPage> with AutomaticKeepAliveClientMixin {
   TextEditingController _answerController = TextEditingController();
   int _currentQuestionIndex = 0;
   List<Map<String, dynamic>> _questions = [
@@ -73,6 +75,9 @@ class _QuestionPageState extends State<QuestionPage> {
   bool _hasSubmittedCurrentAnswer = false;
 
   @override
+  bool get wantKeepAlive => true; // 페이지 상태 유지 설정
+
+  @override
   void initState() {
     super.initState();
     _initializeChatItems();
@@ -118,7 +123,7 @@ class _QuestionPageState extends State<QuestionPage> {
       });
 
       setState(() {
-        // 내 답변을 _allChatItems에 추가
+        // 내 답변을 _all
         _allChatItems.add({'type': 'answer', 'content': answer, 'isGroupAnswer': false});
         _hasAnsweredCurrentQuestion = true;
         _hasSubmittedCurrentAnswer = true;
@@ -141,6 +146,8 @@ class _QuestionPageState extends State<QuestionPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin을 사용할 때 반드시 호출
+
     return Scaffold(
       appBar: AppBar(
         title: Text('오늘의 질문'),
@@ -235,7 +242,14 @@ class _QuestionPageState extends State<QuestionPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // 홈 버튼이 눌렸을 때 수행할 작업을 여기에 작성하세요.
+          String selectedGroupId = context.read<GroupProvider>().selectedGroupId;
+          String selectedGroupName = context.read<GroupProvider>().selectedGroupName;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CalendarPage(groupName: selectedGroupName, groupId: selectedGroupId),
+            ),
+          );
         },
         child: Icon(Icons.home),
         backgroundColor: Colors.white,
