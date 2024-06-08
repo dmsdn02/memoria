@@ -30,16 +30,45 @@ class PostDetailPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        username,
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          Text(
+                            username,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(width: 8.0),
+                          Text(
+                            timestamp,
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 8.0),
-                      Text(
-                        timestamp,
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                      if (FirebaseAuth.instance.currentUser != null &&
+                          FirebaseAuth.instance.currentUser!.uid == post['userId'])
+                        PopupMenuButton<String>(
+                          onSelected: (value) async {
+                            if (value == 'edit') {
+                              // 수정 기능 구현
+                            } else if (value == 'delete') {
+                              await FirebaseFirestore.instance.collection('posts').doc(post.id).delete();
+                              Navigator.pop(context, 'deleted');
+                            }
+                          },
+                          itemBuilder: (BuildContext context) {
+                            return [
+                              PopupMenuItem<String>(
+                                value: 'edit',
+                                child: Text('수정'),
+                              ),
+                              PopupMenuItem<String>(
+                                value: 'delete',
+                                child: Text('삭제'),
+                              ),
+                            ];
+                          },
+                        ),
                     ],
                   ),
                   SizedBox(height: 8.0),

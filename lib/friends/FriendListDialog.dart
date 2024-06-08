@@ -45,6 +45,18 @@ class _FriendListDialogState extends State<FriendListDialog> {
       }
 
       String currentUserId = currentUser.uid;
+      String currentUserName = '';
+
+      // Firestore에서 현재 사용자의 이름 가져오기
+      DocumentSnapshot userSnapshot = await _firestore.collection('users').doc(currentUserId).get();
+      if (userSnapshot.exists) {
+        currentUserName = userSnapshot.get('name') ?? 'No Name';
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('현재 사용자 정보를 찾을 수 없습니다.')),
+        );
+        return;
+      }
 
       var userQuery = await _firestore.collection('users').where('email', isEqualTo: friendEmail).get();
       if (userQuery.docs.isEmpty) {
@@ -58,24 +70,29 @@ class _FriendListDialogState extends State<FriendListDialog> {
       String friendUserId = friendSnapshot.id;
       String friendName = friendSnapshot['name'];
 
-      var friendsDoc = await _firestore.collection('friends').doc(currentUserId).get();
-      if (friendsDoc.exists) {
-        var friendsData = friendsDoc.data();
-        if (friendsData != null && friendsData['friends'] != null) {
-          List<dynamic> friendsList = friendsData['friends'];
-          bool alreadyFriend = friendsList.any((friend) => friend['email'] == friendEmail);
-          if (alreadyFriend) {
-            setState(() {
-              _emailErrorText = '이미 추가된 친구입니다.';
-            });
-            return;
-          }
-        }
+      // 중복 여부 확인
+      var duplicateQuery = await _firestore
+          .collection('friend_requests')
+          .where('senderEmail', isEqualTo: currentUser.email)
+          .where('receiverEmail', isEqualTo: friendEmail)
+          .get();
+
+      if (duplicateQuery.docs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이미 해당 이메일로 요청을 보냈습니다.')),
+        );
+        return;
       }
 
-      DocumentReference friendsDocRef = _firestore.collection('friends').doc(currentUserId);
-      await friendsDocRef.update({
-        'friends': FieldValue.arrayUnion([{'email': friendEmail, 'name': friendName}]),
+      // 친구 추가 요청을 보내기
+      await _firestore.collection('friend_requests').add({
+        'senderId': currentUserId,
+        'senderName': currentUserName,
+        'senderEmail': currentUser.email,
+        'receiverId': friendUserId,
+        'receiverEmail': friendEmail,
+        'status': 'pending',
+        'timestamp': FieldValue.serverTimestamp(),
       });
 
       Navigator.of(context).pop(friendEmail);
@@ -127,3 +144,4 @@ class _FriendListDialogState extends State<FriendListDialog> {
     );
   }
 }
+
