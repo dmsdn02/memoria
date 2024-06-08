@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'FriendListDialog.dart';
+import 'FriendRequestDialog.dart';
 
 class FriendListPage extends StatefulWidget {
   @override
@@ -28,6 +29,9 @@ class _FriendListPageState extends State<FriendListPage> {
   }
 
   Future<void> _loadFriends() async {
+    if (_currentUser == null) {
+      return; // 사용자가 로그인되어 있지 않으면 아무 작업도 수행하지 않음
+    }
     try {
       final userDoc = await _firestore.collection('friends').doc(_currentUser!.uid).get();
       if (userDoc.exists) {
@@ -44,19 +48,35 @@ class _FriendListPageState extends State<FriendListPage> {
   }
 
   Future<void> _addFriend(String friendEmail) async {
+    if (_currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('로그인이 필요합니다.')),
+      );
+      return; // 사용자가 로그인되어 있지 않으면 에러 메시지를 표시하고 함수 종료
+    }
     try {
       final friendQuery = await _firestore.collection('users').where('email', isEqualTo: friendEmail).get();
       if (friendQuery.docs.isNotEmpty) {
         final friendDoc = friendQuery.docs.first;
         final friendData = friendDoc.data();
 
-        setState(() {
-          _friends.add({'name': friendData['name'], 'email': friendEmail});
+        final friendInfo = {'name': friendData['name'], 'email': friendEmail};
+
+        // 상대방에게 받은 요청 추가
+        await _firestore.collection('friendRequests').doc(friendEmail).collection('received').add({
+          'name': _currentUser!.displayName,
+          'email': _currentUser!.email,
         });
 
-        await _firestore.collection('friends').doc(_currentUser!.uid).update({
-          'friends': FieldValue.arrayUnion([{'name': friendData['name'], 'email': friendEmail}]),
+        // 나에게 보낸 요청 추가
+        await _firestore.collection('friendRequests').doc(_currentUser!.email).collection('sent').add({
+          'name': friendData['name'],
+          'email': friendEmail,
         });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('친구 요청을 보냈습니다.')),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('해당 이메일로 등록된 사용자를 찾을 수 없습니다.')),
@@ -66,6 +86,7 @@ class _FriendListPageState extends State<FriendListPage> {
       print('Error adding friend: $e');
     }
   }
+
 
   Future<void> _removeFriend(String email) async {
     bool? confirmDelete = await showDialog<bool>(
@@ -166,6 +187,17 @@ class _FriendListPageState extends State<FriendListPage> {
     }
   }
 
+  void _showRequestDialog(String requestType) {
+    showDialog(
+      context: context,
+      builder: (context) => FriendRequestDialog(
+        requestType: requestType,
+        onRequestProcessed: _loadFriends, // 친구 목록 업데이트 함수 전달
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -234,6 +266,22 @@ class _FriendListPageState extends State<FriendListPage> {
                       ),
                     ],
                   ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _showRequestDialog('sent'),
+                  child: Text('보낸 요청'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _showRequestDialog('received'),
+                  child: Text('받은 요청'),
                 ),
               ],
             ),
