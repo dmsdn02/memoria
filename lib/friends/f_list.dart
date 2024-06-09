@@ -203,7 +203,9 @@ class _FriendListPageState extends State<FriendListPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('친구 목록'),
+        backgroundColor: Colors.white,
       ),
+      backgroundColor: Colors.white,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -275,13 +277,50 @@ class _FriendListPageState extends State<FriendListPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
-                  onPressed: () => _showRequestDialog('sent'),
-                  child: Text('보낸 요청'),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey), // 테두리 색상 및 두께 설정
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFADD8E6), // 버튼 배경색 변경
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0), // 버튼 모서리를 둥글게 만듭니다.
+                        ),
+                      ),
+                      onPressed: () => _showRequestDialog('sent'),
+                      child: Text(
+                        '보낸 요청',
+                        style: TextStyle(color: Colors.black), // 글씨 색상 변경
+                      ),
+                    ),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () => _showRequestDialog('received'),
-                  child: Text('받은 요청'),
+                SizedBox(width: 8.0), // 버튼 사이에 여유 공간 추가
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey), // 테두리 색상 및 두께 설정
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFFFC5D3), // 버튼 배경색 변경
+                        padding: EdgeInsets.symmetric(vertical: 15), // 높이 설정
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0), // 버튼 모서리를 둥글게 만듭니다.
+                        ),
+                      ),
+                      onPressed: () => _showRequestDialog('received'),
+                      child: Text(
+                        '받은 요청',
+                        style: TextStyle(color: Colors.black), // 글씨 색상 변경
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -211,7 +211,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PostsByDatePage(initialDate: currentDay, groupId: widget.groupId, userId: ""), // 오류 수정된 부분
+                    builder: (context) => PostsByDatePage(initialDate: currentDay, groupId: widget.groupId),
                   ),
                 );
               },
@@ -272,17 +272,4 @@ class _CalendarPageState extends State<CalendarPage> {
     return querySnapshot.docs.isNotEmpty;
   }
 
-}
-
-class PostsByDatePage extends StatelessWidget {
-  final DateTime initialDate;
-  final String groupId;
-  final String userId;
-
-  const PostsByDatePage({Key? key, required this.initialDate, required this.groupId, required this.userId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(); // 여기에 해당 날짜에 해당하는 게시물을 보여주는 위젯을 작성하세요.
-  }
 }
