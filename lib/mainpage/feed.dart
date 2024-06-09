@@ -68,6 +68,7 @@ class _PostsByDatePageState extends State<PostsByDatePage> {
         backgroundColor: Colors.white,
         centerTitle: true,
       ),
+      backgroundColor: Colors.white,
       body: PageView.builder(
         controller: _pageController,
         reverse: true, // Allow swiping left to move to previous dates
@@ -112,22 +113,55 @@ class _PostsByDatePageState extends State<PostsByDatePage> {
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Card(
+                    child:Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0XFFF1F7FB), // 배경색 설정
+                        borderRadius: BorderRadius.circular(16.0), // 테두리 모양 설정
+                        border: Border.all(color: Colors.grey, width: 1), // 테두리 색상 및 너비 설정
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  username,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                Row(
+                                  children: [
+                                    Text(
+                                      username,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(width: 8.0),
+                                    Text(
+                                      timestamp,
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(width: 8.0),
-                                Text(
-                                  timestamp,
-                                  style: TextStyle(color: Colors.grey),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.comment),
+                                      onPressed: () {
+                                        // Handle comment icon tap
+                                      },
+                                    ),
+                                    StreamBuilder<QuerySnapshot>(
+                                      stream: FirebaseFirestore.instance
+                                          .collection('comments')
+                                          .where('postId', isEqualTo: post.id)
+                                          .snapshots(),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData) {
+                                          return Text('0');
+                                        }
+                                        var commentCount = snapshot.data!.docs.length;
+                                        return Text('$commentCount');
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -175,11 +209,13 @@ class _PostsByDatePageState extends State<PostsByDatePage> {
                         ),
                       ),
                     ),
+
                   ),
                 );
               },
             );
           }
+
         },
       ),
     );
