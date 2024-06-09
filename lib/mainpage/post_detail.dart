@@ -60,6 +60,52 @@ class _PostDetailPageState extends State<PostDetailPage> {
     }
   }
 
+  Future<void> _deletePost(BuildContext context) async {
+    // 삭제 확인 다이얼로그 표시
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('게시물 삭제'),
+          content: Text('게시물을 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false), // 취소
+              child: Text('아니요'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true), // 확인
+              child: Text('예'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // 확인이 선택되었을 경우에만 삭제 실행
+    if (confirmDelete == true) {
+      try {
+        // 게시물 삭제
+        await FirebaseFirestore.instance.collection('posts').doc(widget.post.id).delete();
+
+        // 게시물에 대한 좋아요 정보를 찾아서 삭제
+        var likeDocsSnapshot = await FirebaseFirestore.instance
+            .collection('likes')
+            .where('postId', isEqualTo: widget.post.id)
+            .get();
+
+        for (var likeDoc in likeDocsSnapshot.docs) {
+          await likeDoc.reference.delete();
+        }
+
+        Navigator.pop(context, 'deleted');
+      } catch (e) {
+        print('게시물 삭제 중 오류 발생: $e');
+        // 오류가 발생한 경우 사용자에게 알림을 표시할 수 있습니다.
+        // 예: ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('게시물 삭제 중 오류 발생')));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,8 +154,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   if (value == 'edit') {
                                     // 수정 기능 구현
                                   } else if (value == 'delete') {
-                                    await FirebaseFirestore.instance.collection('posts').doc(widget.post.id).delete();
-                                    Navigator.pop(context, 'deleted');
+                                    await _deletePost(context); // 삭제 함수 호출
                                   }
                                 },
                                 itemBuilder: (BuildContext context) {
