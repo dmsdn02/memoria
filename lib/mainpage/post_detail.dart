@@ -44,6 +44,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       await FirebaseFirestore.instance.collection('likes').add({
         'postId': widget.post.id,
         'userId': userId,
+        'groupId': widget.post['groupId'], // groupId 추가
         'timestamp': Timestamp.now(),
       });
     } else {
@@ -58,6 +59,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -178,8 +180,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               onPressed: _toggleLike,
                             ),
                             SizedBox(width: 4.0),
-                            Text('좋아요 수', style: TextStyle(fontSize: 16)),
-                            SizedBox(width: 16.0),
+                            //Text('좋아요 수', style: TextStyle(fontSize: 16)),
+                            //SizedBox(width: 16.0),
                             IconButton(
                               icon: Icon(Icons.comment),
                               onPressed: () {
