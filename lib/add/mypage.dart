@@ -7,6 +7,7 @@ import '../friends/f_list.dart';
 import '../mainpage/calendar.dart';
 import '../add/myrecord.dart'; // 수정된 부분
 import '../mainpage/question.dart';
+import 'StoragePage.dart';
 import 'groupProvider.dart';
 import 'setting.dart';
 
@@ -154,7 +155,10 @@ class _MyPageState extends State<MyPage> {
                           IconButton(
                             icon: Icon(Icons.archive),
                             onPressed: () {
-                              // 보관함 기능
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => StoragePage()),
+                              );
                             },
                           ),
                           Text("보관함"),
