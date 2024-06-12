@@ -192,6 +192,7 @@ class _MyPageState extends State<MyPage> {
 
                     return Wrap(
                       spacing: 1.0,
+                      alignment: WrapAlignment.center,
                       children: groupDocs.map((groupDoc) {
                         final groupCreatorEmail = groupDoc['groupCreator']['email']; // 그룹 생성자 이메일
                         final groupMembers = groupDoc['groupMembers']; // 그룹 멤버 목록
@@ -208,7 +209,7 @@ class _MyPageState extends State<MyPage> {
                             child: SizedBox(
                               width: MediaQuery.of(context).size.width / 2 - 24.0,
                               child: Card(
-                                color: Colors.blue[50],
+                                color: Color(0xFFFFC5D3), // 배경색 변경
                                 child: Padding(
                                   padding: const EdgeInsets.all(5.0),
                                   child: Column(
@@ -267,7 +268,6 @@ class _MyPageState extends State<MyPage> {
                                           ),
                                         ),
                                       ),
-
                                     ],
                                   ),
                                 ),
@@ -362,4 +362,3 @@ class _MyPageState extends State<MyPage> {
     );
   }
 }
-

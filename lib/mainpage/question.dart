@@ -30,7 +30,7 @@ class _QuestionPageState extends State<QuestionPage> with AutomaticKeepAliveClie
       'friendAnswers': []
     },
     {
-      'question': '가족과 함께 즐겼던 취미는 무엇인가요?',
+      'question': '첫인상은 무엇인가요?',
       'groupAnswers': [],
       'friendAnswers': []
     },
